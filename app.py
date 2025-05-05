@@ -10,11 +10,18 @@ import uuid # Import uuid for unique IDs
 # Explicit imports - remove serve_static
 from fasthtml.common import FastHTML, Link, Button, Div, Title, H1, H2, H3, P, Textarea, Form, Input, Hr, Br, Table , Tbody, Tr, Thead, Td, Span, A,Th,H4,Ul,Li, Script
 
+# --- Import Custom Component --- #
+# from .components import MarkdownEditor # No longer needed for notes
+
 app = FastHTML(
     hdrs=(
         Link(rel='stylesheet', href='/static/style.css'),
-        # Add HTMX library if not included by default in your FastHTML version
-        # Script(src="https://unpkg.com/htmx.org@1.9.10"),
+        # Add HTMX library (ensure it's loaded before EasyMDE if there are interactions)
+        # Script(src="https://unpkg.com/htmx.org@1.9.10"), # Assuming FastHTML includes it or similar
+        # --- Add EasyMDE --- #
+        Link(rel="stylesheet", href="https://unpkg.com/easymde/dist/easymde.min.css"),
+        Script(src="https://unpkg.com/easymde/dist/easymde.min.js"),
+        # ------------------ #
         )
 )
 
@@ -238,18 +245,16 @@ def save_tasks_action(day_name: str, tasks_content: str):
     # Now only contains the optional message/script and the calendar wrapper
     return Div(*main_content_children, id="main-content-area", cls="main-content")
 
-# Date Detail Route (Updated wrapper and added Back button)
+# Date Detail Route (UPDATED for EasyMDE)
 @app.get("/date/{date_str}")
 def get_date_details(date_str: str):
     try:
         date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
         day_name = date_obj.strftime('%A').lower()
     except ValueError:
-        # Return error wrapped in the target ID div
         return Div(P("Invalid date format.", cls="error-msg"), id='content-swap-wrapper')
 
-    # --- Load CURRENT Tasks Template (read-only display) ---
-    # We display the current template, not the potentially outdated one saved in the notes file
+    # --- Load CURRENT Tasks Template (for display) ---
     tasks_file_path = os.path.join("tasks", f"{day_name}.md")
     tasks_display_html = ""
     if os.path.exists(tasks_file_path):
@@ -263,92 +268,145 @@ def get_date_details(date_str: str):
     else:
         tasks_display_html = P(f"No predefined tasks template for {day_name.capitalize()}.")
 
-    # --- Load and PARSE Notes --- #
+    # --- Load Notes (for editing) --- #
     notes_file_path = os.path.join("data", f"{date_str}_notes.md")
     notes_for_editing = "" # Content for the textarea
-    full_saved_content = "" # For potential display if needed
+    # Simplified loading - just get the notes part
     notes_separator = "\n\n---\n\n## My Notes\n\n"
-
     if os.path.exists(notes_file_path):
         try:
             with open(notes_file_path, 'r', encoding='utf-8') as f:
                 full_saved_content = f.read()
-            # Try to split the content
             parts = full_saved_content.split(notes_separator, 1)
             if len(parts) == 2:
-                # Found separator, notes are the second part
                 notes_for_editing = parts[1]
             else:
-                # Separator not found, assume old format or notes only
-                # Check if it starts with the tasks header (unlikely if saved by new code)
-                if full_saved_content.startswith(f"## Tasks for {day_name.capitalize()}"):
-                     # It might be an old file before the separator was added.
-                     # It's hard to reliably extract just notes here.
-                     # Safest is to put all content in textarea for user to fix.
-                     print(f"Warning: Note file {notes_file_path} might be in old format.")
-                     notes_for_editing = full_saved_content
-                else:
-                    # Assume it only contains notes
-                    notes_for_editing = full_saved_content
+                # Handle old format or notes only
+                notes_for_editing = full_saved_content # Assume all content is notes if separator not found
         except OSError as e:
             print(f"Error reading notes file {notes_file_path}: {e}")
-            # Potentially show an error message here?
             notes_for_editing = "Error loading saved notes."
 
     # --- Determine if editable --- #
     today = datetime.date.today()
     is_editable = (date_obj <= today)
 
-    # --- Build HTML Response wrapped in #content-swap-wrapper ---
+    # --- Build HTML Response --- #
     details_children = [
-        # Add a Back button
+        # Back button
         Div(Button("< Back to Calendar",
-                   hx_get="/", # Go back to root, which will render current month calendar
-                   hx_target="#content-swap-wrapper",
-                   hx_swap="outerHTML swap:322ms",
-                   cls="button-back" # New class for styling
+                   hx_get="/", hx_target="#content-swap-wrapper",
+                   hx_swap="outerHTML swap:322ms", cls="button-back"
                   ), cls="back-button-container"),
-
         H3(f"{date_obj.strftime('%A, %B %d, %Y')}"),
         H4("Tasks"),
         Div(tasks_display_html if isinstance(tasks_display_html, str) else tasks_display_html, cls="tasks-display-readonly"),
         Hr(),
         H4("My Notes"),
+        # --- Form containing the Textarea for EasyMDE --- #
         Form(
-            Textarea(notes_for_editing, name="notes", rows=10, cols=80, disabled=not is_editable),
+            # Simple Textarea - EasyMDE will enhance this
+            Textarea(notes_for_editing, name="notes",
+                     id="notes-editor-textarea", # ID for JS to find
+                     disabled=not is_editable,
+                     # Removed hx-* attributes for live preview
+                     style="height: 250px;" # Optional: initial height
+                    ),
+            # --- ADD dedicated feedback area --- #
+            Div(id="notes-save-feedback"),
+            # --- END feedback area ---
+            # Save button remains part of the form
             Br(),
             Input(type="submit", value="Save Notes", disabled=not is_editable,
                   hx_post=f'/save-date/{date_str}',
-                  hx_target='#content-swap-wrapper', # Target wrapper on save response
-                  hx_swap='outerHTML' # Replace with updated details view (no delay needed on save response)
+                  # --- UPDATE hx-target and hx-swap --- #
+                  hx_target='#notes-save-feedback',
+                  hx_swap='innerHTML' # Replace content of feedback div
+                  # Alternative: hx_swap='afterbegin' # Insert message at start of feedback div
                  ) if is_editable else P("Notes can only be added/edited on or after the selected date."),
-            action="javascript:void(0);"
+            action="javascript:void(0);" # Prevent default form submission
+         , cls="notes-editor-form"), # Apply class to form if needed
+        # --- End Form --- #
+
+        # --- EasyMDE Initialization Script --- #
+        Script(
+            f"""
+            // Ensure this runs after HTMX swap
+            var easyMDE = null;
+            var textarea = document.getElementById('notes-editor-textarea');
+            // var form = textarea ? textarea.closest('form') : null; // No longer need form listener
+
+            if (textarea && !textarea.classList.contains('easymde-initialized')) {{
+                try {{
+                    easyMDE = new EasyMDE({{
+                        element: textarea,
+                        spellChecker: false,
+                        status: false,
+                        // forceSync: true, // Might still be useful, test if needed
+                    }});
+                    textarea.classList.add('easymde-initialized');
+
+                    // --- NEW: Sync on change --- //
+                    easyMDE.codemirror.on('change', function() {{
+                        // Option 1: Use codemirror save (might be more robust)
+                        easyMDE.codemirror.save(); 
+                        // Option 2: Directly set value (simpler)
+                        // textarea.value = easyMDE.value(); 
+                        // console.log('EasyMDE content synced to textarea on change.'); // Browser console debug
+                    }});
+                    // --- End Sync on change --- //
+
+                }} catch (e) {{
+                    console.error("Error initializing EasyMDE:", e);
+                    // Optionally display an error to the user
+                }}
+            }}
+
+            // --- REMOVED htmx:configRequest listener --- //
+            /*
+            if (form && !form.getAttribute('data-easymde-listener-added')) {{
+                form.addEventListener('htmx:configRequest', function(event) {{
+                    // ... previous listener code ...
+                }});
+                form.setAttribute('data-easymde-listener-added', 'true');
+            }}
+            */
+            """
         )
     ]
     # Wrap the details in the swappable div
     return Div(*details_children, id='content-swap-wrapper')
 
-# Save Date Notes Route (UPDATED return structure)
+# Save Date Notes Route (UPDATED return structure for no reload)
 @app.post("/save-date/{date_str}")
 def save_date_notes(date_str: str, notes: str):
     error_msg = None
     success_msg = None
-    msg_id = f"msg-{uuid.uuid4()}" # Unique ID for the message
+    # msg_id = f"msg-{uuid.uuid4()}" # ID is now generated when creating message_div
 
     try:
         date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
         day_name = date_obj.strftime('%A').lower()
     except ValueError:
-        # No fade-out needed for immediate error return
-        return Div(P("Invalid date format.", cls="error-msg"), id='content-swap-wrapper')
+        # Return error message targeted at the feedback area
+        # Or potentially still replace content if date is fundamentally wrong?
+        # For now, target feedback area for consistency.
+        msg_id = f"msg-{uuid.uuid4()}"
+        message_div = Div(P("Invalid date format.", cls="error-msg"), cls=f"feedback-msg error-msg", id=msg_id)
+        script_tag = Script(f"setTimeout(() => document.getElementById('{msg_id}')?.classList.add('fade-out'), 1000)")
+        return message_div, script_tag
 
     # Re-check if editable
     today = datetime.date.today()
     if date_obj > today:
         error_msg = "Cannot save notes for a future date."
-        # Fall through to return get_date_details with the error message
+        # Fall through to return just the feedback message below
     else:
         # Proceed with saving
+        print(f"--- DEBUG: Received notes content in /save-date ---") # DEBUG START
+        print(notes)
+        print(f"--- END DEBUG: Received notes content ---")          # DEBUG END
+
         tasks_markdown_content = ""
         tasks_file_path = os.path.join("tasks", f"{day_name}.md")
         if os.path.exists(tasks_file_path):
@@ -362,16 +420,22 @@ def save_date_notes(date_str: str, notes: str):
 
         final_content = f"## Tasks for {day_name.capitalize()}\n\n{tasks_markdown_content}\n\n---\n\n## My Notes\n\n{notes}"
         notes_file_path = os.path.join("data", f"{date_str}_notes.md")
+
+        print(f"--- DEBUG: Attempting to write to {notes_file_path} ---") # DEBUG START
+        print(f"Final content length: {len(final_content)}")
+        # Optionally print a snippet if content is long
+        print(f"Final content snippet: {final_content[:200]}...")
+        print(f"--- END DEBUG: Write attempt ---")                      # DEBUG END
+
         try:
             with open(notes_file_path, 'w', encoding='utf-8') as f:
                 f.write(final_content)
             success_msg = "Notes saved successfully!"
+            print(f"--- DEBUG: File write successful for {notes_file_path} ---") # DEBUG SUCCESS
         except OSError as e:
-            print(f"Error saving notes file {notes_file_path}: {e}")
+            print(f"--- DEBUG: ERROR saving notes file {notes_file_path}: {e} ---") # DEBUG ERROR
             error_msg = "Error saving notes. Please try again."
-
-    # --- Get Updated Details View --- #
-    details_content_wrapper = get_date_details(date_str) # This is the Div id='content-swap-wrapper'
+            # success_msg = None # Ensure success_msg is cleared on error
 
     # --- Prepare Feedback Elements (if any) --- #
     message_div = None
@@ -379,17 +443,17 @@ def save_date_notes(date_str: str, notes: str):
     if success_msg or error_msg:
         msg_text = success_msg if success_msg else error_msg
         msg_class = "success-msg" if success_msg else "error-msg"
-        msg_id = f"msg-{uuid.uuid4()}"
+        msg_id = f"msg-{uuid.uuid4()}" # Generate ID here
         message_div = Div(P(msg_text), cls=f"feedback-msg {msg_class}", id=msg_id)
         script_tag = Script(f"setTimeout(() => document.getElementById('{msg_id}')?.classList.add('fade-out'), 1000)")
 
-    # --- Return Feedback + Content --- #
+    # --- Return ONLY Feedback (or empty string if no message) --- #
     if message_div:
-        # Return message, script, and the main content wrapper as siblings
-        return message_div, script_tag if script_tag else "", details_content_wrapper
+        return message_div, script_tag if script_tag else ""
     else:
-        # No message, just return the main content wrapper
-        return details_content_wrapper
+        # No message, maybe return 204 No Content? Requires Response class.
+        # For simplicity with FastHTML components, return an empty string.
+        return ""
 
 # Main entry point remains the same
 if __name__ == "__main__":
