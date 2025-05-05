@@ -175,20 +175,24 @@ html {
 .button-back {
     /* Use similar styling to cancel button or nav buttons */
     padding: 5px 10px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--primary-color);
     border-radius: 4px;
     background-color: #fff;
     color: var(--text-color);
     text-decoration: none;
     font-size: 0.9em;
     cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+    font-weight: bold;
 }
 
 .button-back:hover {
-    background-color: var(--subtle-bg);
-    border-color: var(--primary-color);
-    color: var(--heading-color);
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
 }
 
 /* --- NEW: Day/Week Nav Buttons in Detail View --- */
@@ -539,17 +543,6 @@ button:hover {
     border-color: var(--primary-dark);
 }
 
-/* Keep close button distinct */
-button[hx-get="/"] {
-    background-color: #f8f8f8;
-    border-color: #ccc;
-    color: var(--text-color);
-}
-
-button[hx-get="/"]:hover {
-    background-color: #eee;
-    border-color: #bbb;
-}
 
 input[type="submit"]:disabled {
     background-color: var(--disabled-bg);
@@ -702,10 +695,6 @@ html {
     max-width: 100%; /* Max width matches the parent container's width */
     width: 100%;     /* Allow it to shrink with the window */
     box-sizing: border-box; /* Ensure padding/border included */
-}
-    max-width: 800px;          /* <= Set preferred width */
-    width: 100%;               /* let it shrink with window */
-    box-sizing: border-box;    /* Ensure padding/border included */
 }
 
 /* 2. Ensure the underlying textarea stays hidden */

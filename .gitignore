@@ -139,3 +139,11 @@ data/
 # Operating System Files
 .DS_Store
 Thumbs.db 
+# SpecStory explanation file
+.specstory/.what-is-this.md
+
+# Cursor files
+.cursorindexingignore
+
+# SpecStory directory
+.specstory/

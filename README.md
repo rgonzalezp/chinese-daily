@@ -46,7 +46,7 @@ This is a simple web application built with Python and the FastHTML framework to
 1.  Make sure your virtual environment is activated (`.venv\Scripts\activate` or `source .venv/bin/activate`).
 2.  Run the Uvicorn server from the project root directory:
     ```bash
-    uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dirs app
+    uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload 
     ```
 3.  Open your web browser and navigate to `http://127.0.0.1:8000` or `http://localhost:8000`.
 

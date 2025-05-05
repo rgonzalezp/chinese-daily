@@ -68,11 +68,13 @@ def get_date_details(request: Request, date_str: str):
 
     # --- Build Detail Content Wrapper --- #
     details_children = [
-        Div(Button("< Back to Calendar",
-                   hx_get="/", hx_target=config.CONTENT_SWAP_ID,
-                   hx_swap=f"outerHTML swap:{config.SWAP_DELAY_MS}ms", cls="button-back"
-                  ), cls="back-button-container"),
         Div(
+            Button("< Back to Calendar",
+                   hx_get="/", hx_target=config.CONTENT_SWAP_ID,
+                   hx_swap=f"outerHTML swap:{config.SWAP_DELAY_MS}ms", 
+                   hx_push_url="true",
+                   cls="button-back"
+                  ),
             # --- Use UI Helper for nav buttons --- #
             day_nav_button("Last Week", prev_week_str),
             day_nav_button("Yesterday", prev_day_str),

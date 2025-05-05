@@ -22,14 +22,18 @@ def edit_tasks_view(day_name: str):
     if day_name.capitalize() not in config.DAYS_OF_WEEK:
         return Div(P(f"Invalid day name: {day_name}"),
                    Button("Back to Calendar", hx_get="/", 
-                          hx_target=config.MAIN_CONTENT_ID, hx_swap="innerHTML"),
+                          hx_target=config.MAIN_CONTENT_ID, hx_swap="innerHTML",
+                          hx_push_url="true",
+                          cls="button-back"),
                    id="task-editor-error")
 
     current_tasks_content = storage.read_tasks_template(day_name)
     if current_tasks_content is None: # Handle potential read error if needed
          return Div(P(f"Error loading tasks for {day_name.capitalize()}."),
                    Button("Back to Calendar", hx_get="/", 
-                          hx_target=config.MAIN_CONTENT_ID, hx_swap="innerHTML"),
+                          hx_target=config.MAIN_CONTENT_ID, hx_swap="innerHTML",
+                          hx_push_url="true",
+                          cls="button-back"),
                    id="task-editor-error")
 
     # Build Editor HTML
@@ -47,6 +51,7 @@ def edit_tasks_view(day_name: str):
                    hx_get="/",
                    hx_target=config.MAIN_CONTENT_ID,
                    hx_swap=f"innerHTML swap:{config.SWAP_DELAY_MS}ms",
+                   hx_push_url="true",
                    cls="button-cancel"
                   ),
             action="javascript:void(0);"

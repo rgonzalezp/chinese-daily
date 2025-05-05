@@ -59,7 +59,8 @@ def generate_calendar(year, month):
                 htmx_attrs = {
                     'hx_get': f'/date/{date_str}', # Points to notes route
                     'hx_target': config.CONTENT_SWAP_ID,
-                    'hx_swap': swap_outer_html
+                    'hx_swap': swap_outer_html,
+                    'hx-push-url': f'/date/{date_str}'
                 }
             row.append(Td(*day_content_children, cls=cell_cls, **htmx_attrs))
         weeks.append(Tr(*row))
