@@ -3,9 +3,12 @@ import os
 import mistune # Import mistune for Markdown rendering
 import calendar # Import calendar module
 from starlette.staticfiles import StaticFiles # Re-add StaticFiles import
+from starlette.requests import Request # Import Request for query params
+from starlette.responses import RedirectResponse # For redirects if needed
+import uuid # Import uuid for unique IDs
 
 # Explicit imports - remove serve_static
-from fasthtml.common import FastHTML, Link, Button, Div, Title, H1, H2, P, Textarea, Form, Input, Hr, Br, Table , Tbody, Tr, Thead, Td, Span, A,Th,H3
+from fasthtml.common import FastHTML, Link, Button, Div, Title, H1, H2, H3, P, Textarea, Form, Input, Hr, Br, Table , Tbody, Tr, Thead, Td, Span, A,Th,H4,Ul,Li, Script
 
 app = FastHTML(
     hdrs=(
@@ -21,20 +24,41 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 SHORT_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-# Helper function (optional, could be inline)
-def create_day_button(day):
-    return Button(day,
-                  hx_get=f'/day/{day.lower()}',
-                  hx_target='#day-details',
-                  hx_swap='innerHTML',
-                  cls='day-button' # Add a class for styling
-                 )
+# Helper function for SIDEBAR day buttons
+def create_sidebar_day_button(day):
+    # Target the main content area to load the task editor
+    return Li(Button(day, # Changed from Button to A or styled Button/Li
+                     hx_get=f'/edit-tasks/{day.lower()}', # Points to NEW task editor route
+                     hx_target='#main-content-area', # Target the main content div
+                     hx_swap='innerHTML swap:322ms', # ADJUSTED SWAP DELAY
+                     cls='sidebar-button' # New class for sidebar buttons
+                    ))
 
-# Helper function to generate the calendar HTML
+# Updated Helper function to generate the calendar HTML + Controls
 def generate_calendar(year, month):
     cal = calendar.monthcalendar(year, month)
     today = datetime.date.today()
+    current_dt = datetime.date(year, month, 1)
+    today_str = today.strftime("%Y-%m-%d") # Get today's date string
 
+    # Calculate previous and next month/year
+    prev_month_dt = current_dt - datetime.timedelta(days=1)
+    prev_year, prev_month = prev_month_dt.year, prev_month_dt.month
+    # Add ~35 days to estimate next month start, then get month/year
+    next_month_dt_est = current_dt + datetime.timedelta(days=35)
+    next_year, next_month = next_month_dt_est.year, next_month_dt_est.month
+
+    # Controls
+    controls = Div(
+        A("< Prev", href=f"/?year={prev_year}&month={prev_month}", cls="cal-nav",
+          hx_get=f"/?year={prev_year}&month={prev_month}", hx_target="#content-swap-wrapper", hx_swap="outerHTML swap:322ms", hx_push_url="true"),
+        Span(f"{current_dt.strftime('%B %Y')}", cls="cal-month-year"),
+        A("Next >", href=f"/?year={next_year}&month={next_month}", cls="cal-nav",
+          hx_get=f"/?year={next_year}&month={next_month}", hx_target="#content-swap-wrapper", hx_swap="outerHTML swap:322ms", hx_push_url="true"),
+        cls="calendar-controls"
+    )
+
+    # Calendar Table Generation (logic mostly same, ensure Td targets correct place)
     header_row = Tr(*[Th(day) for day in SHORT_DAYS], cls='calendar-header')
     weeks = []
     for week in cal:
@@ -43,8 +67,7 @@ def generate_calendar(year, month):
             cell_cls = "calendar-cell"
             day_content_children = []
             htmx_attrs = {}
-
-            if day_num == 0: # Day is not in the current month
+            if day_num == 0:
                 cell_cls += " empty"
             else:
                 current_date = datetime.date(year, month, day_num)
@@ -52,176 +75,321 @@ def generate_calendar(year, month):
                 cell_cls += " active"
                 if current_date == today:
                     cell_cls += " today"
-
-                # Only include the day number span
-                day_content_children = [
-                    Span(str(day_num), cls='day-number')
-                ]
-
-                # Define HTMX attributes for the cell
+                day_content_children = [Span(str(day_num), cls='day-number')]
                 htmx_attrs = {
                     'hx_get': f'/date/{date_str}',
-                    'hx_target': '#day-details',
-                    'hx_swap': 'innerHTML'
+                    'hx_target': '#content-swap-wrapper', # Target wrapper
+                    'hx_swap': 'outerHTML swap:322ms' # Replace wrapper, with delay
                 }
-
-            # Create the Td, applying HTMX attributes if it's an active day
             row.append(Td(*day_content_children, cls=cell_cls, **htmx_attrs))
-
         weeks.append(Tr(*row))
 
-    return Table(
-        Thead(header_row),
-        Tbody(*weeks),
-        cls='calendar-grid'
+    calendar_table = Table(Thead(header_row), Tbody(*weeks), cls='calendar-grid')
+
+    # Return controls and table WRAPPED in the swappable div
+    return Div(controls, calendar_table, id="content-swap-wrapper")
+
+# Root route - handles optional year/month for calendar display
+@app.get("/")
+def home(request: Request):
+    try:
+        year = int(request.query_params.get("year", datetime.datetime.now().year))
+        month = int(request.query_params.get("month", datetime.datetime.now().month))
+        # Basic validation
+        if not (1 <= month <= 12):
+             month = datetime.datetime.now().month
+             year = datetime.datetime.now().year # Reset year if month is invalid
+    except ValueError:
+        year = datetime.datetime.now().year
+        month = datetime.datetime.now().month
+
+    today = datetime.date.today()
+    today_str = today.strftime("%Y-%m-%d")
+
+    # Generate Sidebar Links and Today button
+    sidebar_links = [create_sidebar_day_button(day) for day in DAYS_OF_WEEK]
+    # Create Today button element
+    today_button = Div(A("Today's Details", href="#", cls="sidebar-today-button",
+                       hx_get=f"/date/{today_str}",
+                       hx_target="#content-swap-wrapper", # Target main area's swap wrapper
+                       hx_swap="outerHTML swap:322ms"
+                      ), cls="sidebar-today-container")
+
+    sidebar = Div(
+        today_button, # Add Today button here
+        H3("Week Tasks", cls="sidebar-title"),
+        Ul(*sidebar_links, cls="sidebar-nav"),
+        id="sidebar", cls="sidebar"
     )
 
-# Updated Home Route
-@app.get("/")
-def home():
-    top_day_buttons = [create_day_button(day) for day in DAYS_OF_WEEK]
-    now = datetime.datetime.now()
-    calendar_html = generate_calendar(now.year, now.month)
+    # Generate Calendar View - it now returns the #content-swap-wrapper
+    calendar_content = generate_calendar(year, month)
 
-    return Title("Daily Planner"), \
-           Div(
-               H1("Weekly Planner"),
-               # --- Top Weekday Buttons (Generic Tasks) ---
-               Div(*top_day_buttons, id='weekday-selector', cls='weekday-container'),
-               # --- Monthly Calendar (Specific Dates) ---
-               Div(calendar_html, id='calendar-view', cls='calendar-container'), # Changed class
-               # --- Area for Day Details ---
-               Div(P("Click a day button or a calendar date."), id='day-details', cls='details-container'),
-               id='main-container'
-           )
+    # Assemble main content area - initially just the calendar wrapper
+    main_content = Div(
+        calendar_content,
+        # REMOVED initial details placeholder
+        id="main-content-area", cls="main-content"
+    )
 
-# Adjusted Day Detail Route (for top buttons - shows template)
-@app.get("/day/{day_name}")
-def get_day_template(day_name: str):
+    # Full page structure for initial load
+    if "hx-request" not in request.headers:
+        return Title("Weekly Task Notes"), \
+               Div(
+                   H1("Weekly Task Notes"),
+                   Div( # Main layout container
+                       sidebar,
+                       main_content,
+                       cls="layout-container"
+                   )
+               )
+    else:
+        # If HTMX request (Prev/Next), return only the new calendar content wrapper
+        return calendar_content
+
+# Task Editor View (Implemented)
+@app.get("/edit-tasks/{day_name}")
+def edit_tasks_view(day_name: str):
     day_name = day_name.lower()
     if day_name.capitalize() not in DAYS_OF_WEEK:
-        return P("Invalid day name.", id='day-details')
+        # Handle invalid day name - maybe redirect or show error in main content
+        # For simplicity, return an error message div
+        return Div(P(f"Invalid day name: {day_name}"),
+                   Button("Back to Calendar", hx_get="/", hx_target="#main-content-area", hx_swap="innerHTML"),
+                   id="task-editor-error")
 
-    # --- Load Tasks Template ---
+    # --- Load current tasks --- #
     tasks_file_path = os.path.join("tasks", f"{day_name}.md")
-    tasks_html = ""
+    current_tasks_content = ""
     if os.path.exists(tasks_file_path):
-        with open(tasks_file_path, 'r', encoding='utf-8') as f:
-            tasks_markdown = f.read()
-            tasks_html = mistune.html(tasks_markdown)
-    else:
-        tasks_html = P(f"No predefined tasks template for {day_name.capitalize()}.")
+        try:
+            with open(tasks_file_path, 'r', encoding='utf-8') as f:
+                current_tasks_content = f.read()
+        except OSError as e:
+            print(f"Error reading task file {tasks_file_path} for editing: {e}")
+            # Return error view if tasks can't be loaded
+            return Div(P(f"Error loading tasks for {day_name.capitalize()}."),
+                       Button("Back to Calendar", hx_get="/", hx_target="#main-content-area", hx_swap="innerHTML"),
+                       id="task-editor-error")
 
-    # --- Build HTML Response (Template View) ---
+    # --- Build Editor HTML --- #
     return Div(
-        H2(f"{day_name.capitalize()} Task Template"),
-        tasks_html if isinstance(tasks_html, str) else tasks_html, # Handle P object or HTML string
-        Hr(),
-        P("This shows the generic tasks. Click a date on the calendar to view/edit date-specific notes."),
-        Button("Close", hx_get='/', hx_target='#main-container', hx_swap='innerHTML'),
-        id='day-details'
+        H2(f"Edit Tasks Template for {day_name.capitalize()}"),
+        Form(
+            Textarea(current_tasks_content, name="tasks_content", rows=15, cols=80, cls="task-editor-textarea"),
+            Br(),
+            Input(type="submit", value="Save Tasks Template",
+                  hx_post=f'/save-tasks/{day_name}',
+                  hx_target='#main-content-area',
+                  hx_swap='innerHTML swap:322ms' # ADJUSTED SWAP DELAY
+                 ),
+            Button("Cancel / Back to Calendar",
+                   hx_get="/",
+                   hx_target="#main-content-area",
+                   hx_swap="innerHTML swap:322ms", # ADJUSTED SWAP DELAY
+                   cls="button-cancel"
+                  ),
+            action="javascript:void(0);"
+        ),
+        id="task-editor" # ID for the whole editor view
     )
 
-# NEW: Date Detail Route (Implemented)
+# Task Saving Action (Remove placeholder)
+@app.post("/save-tasks/{day_name}")
+def save_tasks_action(day_name: str, tasks_content: str):
+    day_name = day_name.lower()
+    error_msg = None
+    success_msg = None
+    msg_id = f"msg-{uuid.uuid4()}" # Unique ID
+
+    if day_name.capitalize() not in DAYS_OF_WEEK:
+        error_msg = f"Invalid day name: {day_name} for saving."
+    else:
+        # Save content (existing logic)
+        tasks_file_path = os.path.join("tasks", f"{day_name}.md")
+        try:
+            with open(tasks_file_path, 'w', encoding='utf-8') as f:
+                f.write(tasks_content)
+            success_msg = f"Tasks template for {day_name.capitalize()} saved successfully!"
+        except OSError as e:
+            print(f"Error saving tasks file {tasks_file_path}: {e}")
+            error_msg = f"Error saving tasks template for {day_name.capitalize()}."
+
+    # --- Return Calendar View + Feedback --- #
+    now = datetime.datetime.now()
+    calendar_content = generate_calendar(now.year, now.month) # This is the #content-swap-wrapper
+    # Start with just the calendar content
+    main_content_children = [calendar_content]
+
+    message_div = None
+    script_tag = None
+    if success_msg or error_msg:
+        msg_text = success_msg if success_msg else error_msg
+        msg_class = "success-msg" if success_msg else "error-msg"
+        message_div = Div(P(msg_text), cls=f"feedback-msg {msg_class}", id=msg_id)
+        script_tag = Script(f"setTimeout(() => document.getElementById('{msg_id}')?.classList.add('fade-out'), 1000)")
+
+    if message_div:
+        main_content_children.insert(0, message_div)
+        if script_tag:
+            main_content_children.insert(1, script_tag)
+
+    # Return the main content area structure
+    # Now only contains the optional message/script and the calendar wrapper
+    return Div(*main_content_children, id="main-content-area", cls="main-content")
+
+# Date Detail Route (Updated wrapper and added Back button)
 @app.get("/date/{date_str}")
 def get_date_details(date_str: str):
     try:
         date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-        day_name = date_obj.strftime('%A').lower() # Get day name for tasks
+        day_name = date_obj.strftime('%A').lower()
     except ValueError:
-        return P("Invalid date format. Use YYYY-MM-DD.", id='day-details')
+        # Return error wrapped in the target ID div
+        return Div(P("Invalid date format.", cls="error-msg"), id='content-swap-wrapper')
 
-    # --- Load Tasks (Based on day of week) ---
+    # --- Load CURRENT Tasks Template (read-only display) ---
+    # We display the current template, not the potentially outdated one saved in the notes file
     tasks_file_path = os.path.join("tasks", f"{day_name}.md")
-    tasks_html = ""
+    tasks_display_html = ""
     if os.path.exists(tasks_file_path):
-        with open(tasks_file_path, 'r', encoding='utf-8') as f:
-            tasks_markdown = f.read()
-            tasks_html = mistune.html(tasks_markdown)
+        try:
+            with open(tasks_file_path, 'r', encoding='utf-8') as f:
+                tasks_markdown = f.read()
+                tasks_display_html = mistune.html(tasks_markdown)
+        except OSError as e:
+            print(f"Error reading task file {tasks_file_path} for display: {e}")
+            tasks_display_html = P(f"Could not load tasks template for {day_name.capitalize()}.")
     else:
-        tasks_component = P(f"No predefined tasks template for {day_name.capitalize()}.")
+        tasks_display_html = P(f"No predefined tasks template for {day_name.capitalize()}.")
 
-    # --- Load DATE-SPECIFIC Notes ---
-    notes_file_path = os.path.join("data", f"{date_str}_notes.md") # Use YYYY-MM-DD_notes.md
-    notes_content = ""
+    # --- Load and PARSE Notes --- #
+    notes_file_path = os.path.join("data", f"{date_str}_notes.md")
+    notes_for_editing = "" # Content for the textarea
+    full_saved_content = "" # For potential display if needed
+    notes_separator = "\n\n---\n\n## My Notes\n\n"
+
     if os.path.exists(notes_file_path):
-        with open(notes_file_path, 'r', encoding='utf-8') as f:
-            notes_content = f.read()
+        try:
+            with open(notes_file_path, 'r', encoding='utf-8') as f:
+                full_saved_content = f.read()
+            # Try to split the content
+            parts = full_saved_content.split(notes_separator, 1)
+            if len(parts) == 2:
+                # Found separator, notes are the second part
+                notes_for_editing = parts[1]
+            else:
+                # Separator not found, assume old format or notes only
+                # Check if it starts with the tasks header (unlikely if saved by new code)
+                if full_saved_content.startswith(f"## Tasks for {day_name.capitalize()}"):
+                     # It might be an old file before the separator was added.
+                     # It's hard to reliably extract just notes here.
+                     # Safest is to put all content in textarea for user to fix.
+                     print(f"Warning: Note file {notes_file_path} might be in old format.")
+                     notes_for_editing = full_saved_content
+                else:
+                    # Assume it only contains notes
+                    notes_for_editing = full_saved_content
+        except OSError as e:
+            print(f"Error reading notes file {notes_file_path}: {e}")
+            # Potentially show an error message here?
+            notes_for_editing = "Error loading saved notes."
 
-    # --- Determine if editable (Based on specific date) ---
+    # --- Determine if editable --- #
     today = datetime.date.today()
     is_editable = (date_obj <= today)
 
-    # --- Build HTML Response --- #
-    response_children = [
-        H2(f"{date_obj.strftime('%A, %B %d, %Y')}"), # Show full date
-        H3("Tasks"), # Sub-heading for tasks
-    ]
-    if tasks_html:
-        response_children.append(tasks_html)
-    else:
-        response_children.append(tasks_component)
+    # --- Build HTML Response wrapped in #content-swap-wrapper ---
+    details_children = [
+        # Add a Back button
+        Div(Button("< Back to Calendar",
+                   hx_get="/", # Go back to root, which will render current month calendar
+                   hx_target="#content-swap-wrapper",
+                   hx_swap="outerHTML swap:322ms",
+                   cls="button-back" # New class for styling
+                  ), cls="back-button-container"),
 
-    response_children.extend([
+        H3(f"{date_obj.strftime('%A, %B %d, %Y')}"),
+        H4("Tasks"),
+        Div(tasks_display_html if isinstance(tasks_display_html, str) else tasks_display_html, cls="tasks-display-readonly"),
         Hr(),
-        H3("My Notes"), # Sub-heading for notes
+        H4("My Notes"),
         Form(
-            Textarea(notes_content, name="notes", rows=10, cols=80, disabled=not is_editable),
+            Textarea(notes_for_editing, name="notes", rows=10, cols=80, disabled=not is_editable),
             Br(),
-            Input(type="submit", value="Save Date Notes", disabled=not is_editable,
-                  hx_post=f'/save-date/{date_str}', # Post to save-date route
-                  hx_target='#day-details',
-                  hx_swap='innerHTML' # Swap innerHTML to keep main Div intact
+            Input(type="submit", value="Save Notes", disabled=not is_editable,
+                  hx_post=f'/save-date/{date_str}',
+                  hx_target='#content-swap-wrapper', # Target wrapper on save response
+                  hx_swap='outerHTML' # Replace with updated details view (no delay needed on save response)
                  ) if is_editable else P("Notes can only be added/edited on or after the selected date."),
-            Button("Close",
-                   hx_get='/', # Go back to the main calendar view
-                   hx_target='#main-container',
-                   hx_swap='innerHTML'
-                  ),
             action="javascript:void(0);"
         )
-    ])
+    ]
+    # Wrap the details in the swappable div
+    return Div(*details_children, id='content-swap-wrapper')
 
-    return Div(*response_children, id='day-details')
-
-# Adjusted Save Notes Route (Generic - currently disabled)
-@app.post("/save/{day_name}")
-def save_generic_notes(day_name: str, notes: str):
-    # For now, let's prevent saving from the generic view
-    # Could be repurposed later to save template notes if needed
-    print(f"Attempted to save generic notes for {day_name} (currently disabled).")
-    # Re-render the template view
-    return get_day_template(day_name)
-
-# NEW: Save Date Notes Route (Implemented)
+# Save Date Notes Route (UPDATED return structure)
 @app.post("/save-date/{date_str}")
 def save_date_notes(date_str: str, notes: str):
+    error_msg = None
+    success_msg = None
+    msg_id = f"msg-{uuid.uuid4()}" # Unique ID for the message
+
     try:
         date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+        day_name = date_obj.strftime('%A').lower()
     except ValueError:
-        return P("Invalid date format.", id='day-details')
+        # No fade-out needed for immediate error return
+        return Div(P("Invalid date format.", cls="error-msg"), id='content-swap-wrapper')
 
-    # --- Re-check if editable (Based on specific date) ---
+    # Re-check if editable
     today = datetime.date.today()
     if date_obj > today:
-        # Prevent saving to future dates
-        print(f"Attempted to save notes for future date {date_str} (prevented).")
-        # Return the current view for that date without saving
-        return get_date_details(date_str)
+        error_msg = "Cannot save notes for a future date."
+        # Fall through to return get_date_details with the error message
+    else:
+        # Proceed with saving
+        tasks_markdown_content = ""
+        tasks_file_path = os.path.join("tasks", f"{day_name}.md")
+        if os.path.exists(tasks_file_path):
+            try:
+                with open(tasks_file_path, 'r', encoding='utf-8') as f:
+                    tasks_markdown_content = f.read()
+            except OSError as e:
+                print(f"Error reading task file {tasks_file_path}: {e}")
+                error_msg = "Error reading tasks template; notes saved without tasks."
+                # Continue saving just the notes
 
-    # --- Save Notes to YYYY-MM-DD_notes.md ---
-    notes_file_path = os.path.join("data", f"{date_str}_notes.md")
-    try:
-        with open(notes_file_path, 'w', encoding='utf-8') as f:
-            f.write(notes)
-    except OSError as e:
-        print(f"Error saving notes for {date_str}: {e}")
-        # TODO: Add user-facing error message
-        return get_date_details(date_str) # Return current state on error
+        final_content = f"## Tasks for {day_name.capitalize()}\n\n{tasks_markdown_content}\n\n---\n\n## My Notes\n\n{notes}"
+        notes_file_path = os.path.join("data", f"{date_str}_notes.md")
+        try:
+            with open(notes_file_path, 'w', encoding='utf-8') as f:
+                f.write(final_content)
+            success_msg = "Notes saved successfully!"
+        except OSError as e:
+            print(f"Error saving notes file {notes_file_path}: {e}")
+            error_msg = "Error saving notes. Please try again."
 
-    # --- Return Updated View --- #
-    # Re-render the details for the specific date after saving
-    return get_date_details(date_str)
+    # --- Get Updated Details View --- #
+    details_content_wrapper = get_date_details(date_str) # This is the Div id='content-swap-wrapper'
+
+    # --- Prepare Feedback Elements (if any) --- #
+    message_div = None
+    script_tag = None
+    if success_msg or error_msg:
+        msg_text = success_msg if success_msg else error_msg
+        msg_class = "success-msg" if success_msg else "error-msg"
+        msg_id = f"msg-{uuid.uuid4()}"
+        message_div = Div(P(msg_text), cls=f"feedback-msg {msg_class}", id=msg_id)
+        script_tag = Script(f"setTimeout(() => document.getElementById('{msg_id}')?.classList.add('fade-out'), 1000)")
+
+    # --- Return Feedback + Content --- #
+    if message_div:
+        # Return message, script, and the main content wrapper as siblings
+        return message_div, script_tag if script_tag else "", details_content_wrapper
+    else:
+        # No message, just return the main content wrapper
+        return details_content_wrapper
 
 # Main entry point remains the same
 if __name__ == "__main__":

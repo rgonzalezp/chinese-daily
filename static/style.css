@@ -15,16 +15,225 @@
     --disabled-bg: #f5f5f5;
 }
 
+/* --- NEW: Main Layout --- */
+.layout-container {
+    display: flex;
+    gap: 30px; /* Space between sidebar and main content */
+}
+
+.sidebar {
+    width: 150px; /* Fixed width sidebar */
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+}
+
+.main-content {
+    flex-grow: 1;
+    position: relative;
+    /* Ensure no overflow or min-height is set here */
+}
+
+/* Add media query for smaller screens */
+@media (max-width: 768px) { /* Adjust breakpoint as needed */
+    html {
+        overflow-y: auto; /* Revert to default scrollbar behavior on mobile html */
+    }
+    /* Optional: Adjust layout for mobile? e.g., stack sidebar/content */
+    .layout-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .sidebar {
+        width: 100%; /* Make sidebar full width */
+        order: -1; /* Optionally move sidebar to top */
+    }
+}
+
+.sidebar-title {
+    font-size: 1.1em;
+    color: var(--primary-dark);
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--primary-color);
+}
+
+.sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav li {
+    margin-bottom: 5px;
+}
+
+.sidebar-button {
+    display: block; /* Make button fill list item */
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    background-color: #fff;
+    color: var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    text-align: left;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.sidebar-button:hover {
+    background-color: var(--primary-light);
+    border-color: var(--primary-color);
+}
+
+/* --- End Main Layout --- */
+
+/* --- Scrollbar Styling --- */
+html {
+    overflow-y: scroll; /* Re-add: Force scrollbar track on html for desktop */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--primary-color) var(--subtle-bg); /* Firefox */
+}
+
+/* --- Animation Targets --- */
+/* Remove base transition from the containers */
+/*
+#main-content-area, #details-area {
+    opacity: 1;
+    transition: opacity 0.4s ease-in-out;
+}
+*/
+
+/* Re-apply transitions to the specific content elements being swapped */
+/*
+.details-container,
+#task-editor,
+#calendar-wrapper {
+    opacity: 1;
+    transition: opacity 0.32s ease-in-out;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+*/
+
+/* Add position relative to task editor if needed for absolute positioning inside */
+#task-editor { position: relative; }
+.details-container { position: relative; }
+
+/* Add transition to the NEW swappable wrapper */
+#content-swap-wrapper {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.32s ease-in-out, transform 0.32s ease-in-out;
+    width: 100%; /* Should fill the main content area */
+    box-sizing: border-box;
+}
+
+/* HTMX State Classes for Animation */
+
+/* State 1: Element content is being swapped out */
+/* Applied to the #content-swap-wrapper element *being replaced*. */
+.htmx-swapping {
+    opacity: 0 !important;
+    transform: translateY(-20px) !important; /* Slide up slightly on exit */
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out !important;
+}
+
+/* NEW: Styles for Back Button */
+.back-button-container {
+    margin-bottom: 15px;
+}
+
+.button-back {
+    /* Use similar styling to cancel button or nav buttons */
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: #fff;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.button-back:hover {
+    background-color: var(--subtle-bg);
+    border-color: var(--primary-color);
+    color: var(--heading-color);
+}
+
+/* --- NEW: Markdown Content Styling --- */
+.tasks-display-readonly, .notes-display-readonly { /* Apply to both task & note areas */
+    line-height: 1.7;
+    font-size: 0.95em; /* Slightly smaller than body text */
+}
+
+.tasks-display-readonly h1, .tasks-display-readonly h2, .tasks-display-readonly h3,
+.notes-display-readonly h1, .notes-display-readonly h2, .notes-display-readonly h3 {
+    /* Style headings generated from markdown */
+    margin-top: 1em;
+    margin-bottom: 0.4em;
+    padding-bottom: 0;
+    border-bottom: none;
+    font-size: 1.1em; /* Make sub-headings smaller */
+    color: var(--heading-color);
+}
+
+.tasks-display-readonly p, .notes-display-readonly p {
+    margin-bottom: 0.8em;
+}
+
+.tasks-display-readonly ul, .tasks-display-readonly ol,
+.notes-display-readonly ul, .notes-display-readonly ol {
+    margin-left: 25px;
+    margin-bottom: 1em;
+    padding-left: 0;
+}
+
+.tasks-display-readonly li, .notes-display-readonly li {
+    margin-bottom: 0.4em;
+}
+
+.tasks-display-readonly code, .notes-display-readonly code {
+    background-color: var(--subtle-bg);
+    padding: 0.2em 0.4em;
+    font-size: 0.9em;
+    border-radius: 3px;
+    font-family: Consolas, monospace;
+}
+
+.tasks-display-readonly pre, .notes-display-readonly pre {
+    background-color: var(--subtle-bg);
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto; /* Allow horizontal scroll for long code blocks */
+}
+
+.tasks-display-readonly pre code, .notes-display-readonly pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.tasks-display-readonly blockquote, .notes-display-readonly blockquote {
+    border-left: 3px solid var(--primary-color);
+    margin-left: 0;
+    padding-left: 15px;
+    color: #666;
+}
+/* --- End Markdown Styling --- */
+
 /* Base & Typography */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    max-width: 700px;
+    max-width: 900px; /* Increased max-width */
     margin: 40px auto;
-    padding: 0 15px;
+    padding: 0 20px; /* Slightly more padding */
     line-height: 1.7;
     color: var(--text-color);
     background-color: var(--bg-color);
-    font-size: 16px;
+    font-size: 17px; /* Slightly larger base font */
 }
 
 h1, h2, h3 {
@@ -94,6 +303,48 @@ hr {
     border-color: var(--primary-color);
 }
 
+/* NEW: Calendar Controls Styles */
+.calendar-controls {
+    display: flex;
+    justify-content: space-between; /* Keep space between ends */
+    align-items: center;
+    padding: 5px 5px; /* Reduced padding */
+    margin-bottom: 5px; /* Reduced space below controls */
+    border-bottom: 1px solid var(--border-color);
+    gap: 10px; /* Add gap between control items */
+}
+
+.cal-month-year {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: var(--heading-color);
+    text-align: center; /* Center month/year text */
+    flex-grow: 1; /* Allow month/year to take up space */
+}
+
+.cal-nav {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: #fff;
+    color: var(--text-color);
+    text-decoration: none;
+    white-space: nowrap; /* Prevent wrapping */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.cal-nav.today-nav {
+    /* Optional: Slightly different style for Today */
+    border-color: var(--primary-dark);
+}
+
+.cal-nav:hover {
+    background-color: var(--subtle-bg);
+    border-color: var(--primary-color);
+    color: var(--heading-color);
+    text-decoration: none;
+}
+
 /* Calendar Grid Styles */
 .calendar-grid {
     width: 100%;
@@ -157,20 +408,28 @@ hr {
 
 /* Details Container & Transitions */
 .details-container {
-    margin-top: 30px; /* More space above details */
+    margin-top: 30px;
     padding: 20px;
     border: 1px solid var(--border-color);
     border-radius: 5px;
     background-color: var(--subtle-bg);
-    min-height: 200px;
+    min-height: 150px;
+    /* Base state and transition for fade-in */
     opacity: 1;
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity 0.3s ease-in-out;
 }
 
-/* HTMX Swapping Transition */
-.htmx-swapping {
-    opacity: 0;
+/* Task Editor Transition */
+#task-editor {
+    opacity: 1;
     transition: opacity 0.3s ease-in-out;
+}
+
+/* Calendar Wrapper Transition */
+#calendar-wrapper {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+    position: relative;
 }
 
 /* Form Elements */
@@ -228,4 +487,136 @@ input[type="submit"]:disabled {
     border-color: var(--disabled-color);
     color: #aaa;
     cursor: not-allowed;
-} 
+}
+
+/* --- NEW: Task Editor Styles --- */
+.task-editor-textarea {
+    width: 100%;
+    min-height: 300px; /* Make textarea reasonably tall */
+    font-family: Consolas, monospace; /* Use monospace for markdown editing */
+    font-size: 0.9em;
+    line-height: 1.5;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: #fff;
+    margin-bottom: 15px;
+}
+
+#task-editor h2 {
+    margin-top: 0;
+}
+
+.button-cancel {
+    background-color: #f8f8f8;
+    border-color: #ccc;
+    color: var(--text-color);
+}
+
+.button-cancel:hover {
+    background-color: #eee;
+    border-color: #bbb;
+}
+
+/* --- NEW: Feedback Messages --- */
+.feedback-msg {
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    /* Animation properties */
+    opacity: 1;
+    max-height: 100px; /* Estimate max height, adjust if needed */
+    overflow: hidden;
+    transition: opacity 0.32s ease-in-out, max-height 0.32s ease-in-out, 
+                margin 0.32s ease-in-out, padding 0.32s ease-in-out, 
+                border-width 0.32s ease-in-out;
+}
+
+.feedback-msg p {
+    margin: 0;
+    font-size: 0.95em;
+}
+
+/* State when fading out */
+.feedback-msg.fade-out {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border-width: 0;
+}
+
+.success-msg {
+    color: #155724; /* Dark green text */
+    background-color: #d4edda; /* Light green background */
+    border-color: #c3e6cb; /* Green border */
+}
+
+.error-msg {
+    color: #721c24; /* Dark red text */
+    background-color: #f8d7da; /* Light red background */
+    border-color: #f5c6cb; /* Red border */
+}
+
+/* --- End Feedback Messages --- */
+
+/* --- Custom Scrollbar Styles (WebKit/Blink Browsers) --- */
+::-webkit-scrollbar {
+    width: 25px; /* Width of the scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: var(--subtle-bg); /* Background of the track */
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color); /* Color of the scroll thumb */
+    border-radius: 5px;
+    border: 2px solid var(--subtle-bg); /* Creates padding around thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark); /* Darker thumb on hover */
+}
+
+/* --- Firefox Scrollbar Styling (Limited) --- */
+/* Firefox supports less customization */
+html {
+    scrollbar-width: thin; /* Or 'auto'S or 'none' */
+    scrollbar-color: var(--primary-color) var(--subtle-bg); /* thumb track */
+}
+
+/* --- NEW: Today Button in Sidebar --- */
+.sidebar-today-container {
+    margin-bottom: 10px; /* Reduced space below Today button */
+}
+
+.sidebar-today-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--primary-dark); /* Make it stand out a bit */
+    background-color: var(--primary-light);
+    color: var(--heading-color);
+    font-weight: bold;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95em;
+    text-decoration: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.sidebar-today-button:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-dark);
+    color: white;
+}
+
+/* --- End Main Layout --- */
+
+/* --- Scrollbar Styling --- */ 
