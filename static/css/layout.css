@@ -1,0 +1,36 @@
+/* static/css/layout.css */
+
+/* --- Main Layout --- */
+.layout-container {
+    display: flex;
+    gap: 30px; /* Space between sidebar and main content */
+}
+
+.sidebar {
+    width: 150px; /* Fixed width sidebar */
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+}
+
+.main-content {
+    flex-grow: 1;
+    position: relative;
+    /* Ensure no overflow or min-height is set here */
+}
+
+/* Add media query for smaller screens */
+@media (max-width: 768px) { /* Adjust breakpoint as needed */
+    html {
+        overflow-y: auto; /* Revert to default scrollbar behavior on mobile html */
+    }
+    /* Optional: Adjust layout for mobile? e.g., stack sidebar/content */
+    .layout-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .sidebar {
+        width: 100%; /* Make sidebar full width */
+        order: -1; /* Optionally move sidebar to top */
+    }
+}
+
+/* --- End Main Layout --- */ 

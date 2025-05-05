@@ -1,0 +1,89 @@
+/* static/css/easymde.css */
+
+/* EasyMDE Editor Specific Styles & Overrides */
+
+/* Toolbar button icons/text */
+.editor-toolbar > button > .fa { /* Target Font Awesome icons within toolbar buttons */
+    color: #333 !important; /* Set icon color to dark grey */
+}
+
+.editor-toolbar > button {
+    color: #333 !important; /* Ensure button text (if any) is also dark grey */
+    /* You might uncomment or add background/border styles here if needed */
+    /* background-color: #f9f9f9 !important; */
+    /* border: 1px solid #ddd !important; */
+}
+
+/* Toolbar button active/hover states */
+.editor-toolbar button.active,
+.editor-toolbar button:hover {
+    background-color: #ffffff !important; /* White background */
+    color: #333 !important; /* Dark grey text/icon color */
+    border: 1px solid #bbb !important; /* Add a visible border */
+}
+
+/* Ensure icons within active/hovered buttons also change color */
+.editor-toolbar button.active > .fa,
+.editor-toolbar button:hover > .fa {
+    color: #333 !important; /* Dark grey icon color */
+}
+
+/* Container width fix */
+.EasyMDEContainer {
+    width: 720px; /* Fixed width for the parent container */
+}
+
+.EasyMDEContainer .CodeMirror,
+.EasyMDEContainer .CodeMirror-scroll {
+    max-width: 100%; /* Max width matches the parent container's width */
+    width: 100%;     /* Allow it to shrink with the window */
+    box-sizing: border-box; /* Ensure padding/border included */
+}
+
+/* Base CodeMirror appearance */
+.EasyMDEContainer .CodeMirror {
+  border: 1px solid var(--border-color);
+  /* border-radius: var(--border-radius); Assuming this var doesn't exist, use fixed */
+  border-radius: 4px; 
+  min-height: 350px; /* Increased min-height */
+  overflow-y: hidden; /* Hide this element's vertical scrollbar */
+  resize: vertical;
+   overflow-x: hidden !important;
+}
+
+/* Container scroll behavior */
+.EasyMDEContainer  {
+  /* This is often the scrollable container */
+  overflow-x: hidden !important; /* Hide horizontal scrollbar */
+  overflow-y: auto; /* Explicitly handle vertical scrolling here */
+}
+
+/* CodeMirror internal scroll */
+.CodeMirror-scroll {
+    overflow-x: hidden !important;
+}
+
+/* CodeMirror line wrapping (mostly handled by JS now) */
+.EasyMDEContainer .CodeMirror pre.CodeMirror-line,
+.EasyMDEContainer .CodeMirror pre.CodeMirror-line-like {
+  width: 100%; 
+  box-sizing: border-box;
+}
+
+/* Toolbar wrapping */
+.editor-toolbar {
+    flex-wrap: wrap; 
+}
+
+/* Status bar styling (if ever enabled) */
+.editor-statusbar {
+  /* color: var(--text-secondary); Assuming this var doesn't exist, use fixed */
+  color: #6c757d; 
+  font-size: 0.8em;
+}
+
+/* Hide raw textarea used by EasyMDE */
+textarea#notes-editor-textarea {
+    display: none !important; /* Hide the original textarea */
+    /* We keep it in the DOM for EasyMDE and form submission */
+} 

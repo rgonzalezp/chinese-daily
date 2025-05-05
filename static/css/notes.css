@@ -1,0 +1,35 @@
+/* static/css/notes.css */
+
+/* Container for the date details view */
+.details-container {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: var(--subtle-bg);
+    min-height: 150px;
+    /* Base state and transition for fade-in (May move to animations?) */
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+    /* position: relative; Moved to animations.css */
+}
+
+/* Notes editor textarea */
+textarea[name="notes"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1em;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+    background-color: #fff;
+}
+
+/* Disabled state for notes textarea */
+textarea:disabled {
+    background-color: var(--disabled-bg);
+    color: #999;
+} 

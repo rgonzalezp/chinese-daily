@@ -1,0 +1,60 @@
+/* static/css/day_nav.css */
+
+/* Styles for Back Button (originally in its own container) */
+.back-button-container {
+    margin-bottom: 15px;
+}
+
+.button-back {
+    /* Use similar styling to cancel button or nav buttons */
+    padding: 5px 10px;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    background-color: #fff;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+    font-weight: bold;
+}
+
+.button-back:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Styles for Day/Week Nav Buttons in Detail View */
+.day-nav-container {
+    display: flex;
+    justify-content: space-between; /* Space out buttons */
+    align-items: center;
+    margin-bottom: 15px; /* Space below nav */
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.day-nav-button {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: #fff;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+.day-nav-button:hover {
+    background-color: var(--subtle-bg);
+    border-color: var(--primary-color);
+    color: var(--heading-color);
+    text-decoration: none;
+}
+/* --- End Day/Week Nav --- */ 

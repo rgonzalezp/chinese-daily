@@ -11,9 +11,10 @@ from . import config
 # Shared across route modules
 app = FastHTML(
     hdrs=[
-        Link(rel='stylesheet', href='/static/style.css'),
+        Link(rel='stylesheet', href='/static/css/main.css'),
         Link(rel='stylesheet', href='https://unpkg.com/easymde/dist/easymde.min.css'),
         Script(src='https://unpkg.com/easymde/dist/easymde.min.js'),
+        Script(src="https://unpkg.com/htmx.org@2.0.1/dist/htmx.min.js"),
         # Add our custom global script for EasyMDE initialization
         Script("""
             function initializeEasyMDE() {

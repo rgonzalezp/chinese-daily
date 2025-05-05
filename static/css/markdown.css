@@ -1,0 +1,72 @@
+/* static/css/markdown.css */
+
+/* --- Common Markdown Content Styling (Readonly Views) --- */
+.tasks-display-readonly, .notes-display-readonly { /* Apply to both task & note areas */
+    line-height: 1.7;
+    font-size: 0.95em; /* Slightly smaller than body text */
+}
+
+.tasks-display-readonly h1, .tasks-display-readonly h2, .tasks-display-readonly h3,
+.notes-display-readonly h1, .notes-display-readonly h2, .notes-display-readonly h3 {
+    /* Style headings generated from markdown */
+    margin-top: 1em;
+    margin-bottom: 0.4em;
+    padding-bottom: 0;
+    border-bottom: none;
+    font-size: 1.1em; /* Make sub-headings smaller */
+    color: var(--heading-color);
+}
+
+.tasks-display-readonly p, .notes-display-readonly p {
+    margin-bottom: 0.8em;
+}
+
+.tasks-display-readonly ul, .tasks-display-readonly ol,
+.notes-display-readonly ul, .notes-display-readonly ol {
+    margin-left: 25px;
+    margin-bottom: 1em;
+    padding-left: 0;
+}
+
+.tasks-display-readonly li, .notes-display-readonly li {
+    margin-bottom: 0.4em;
+}
+
+.tasks-display-readonly code, .notes-display-readonly code {
+    background-color: var(--subtle-bg);
+    padding: 0.2em 0.4em;
+    font-size: 0.9em;
+    border-radius: 3px;
+    font-family: Consolas, monospace;
+}
+
+.tasks-display-readonly pre, .notes-display-readonly pre {
+    background-color: var(--subtle-bg);
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto; /* Allow horizontal scroll for long code blocks */
+}
+
+.tasks-display-readonly pre code, .notes-display-readonly pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.tasks-display-readonly blockquote, .notes-display-readonly blockquote {
+    border-left: 3px solid var(--primary-color);
+    margin-left: 0;
+    padding-left: 15px;
+    color: #666;
+}
+
+/* --- Ensure Task Checkboxes are Clickable --- */
+.tasks-display-readonly input[type="checkbox"] {
+    pointer-events: auto; /* Allow clicks on checkboxes */
+    cursor: pointer;       /* Show pointer cursor */
+    /* Optional: Adjust margin or vertical alignment */
+    /* margin-right: 5px; */
+    /* vertical-align: middle; */
+}
+/* -------------------------------------------- */
+
+/* --- End Markdown Styling --- */ 

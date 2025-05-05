@@ -1,0 +1,64 @@
+/* static/css/tasks.css */
+
+/* Task Editor Container Transition */
+#task-editor {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+    /* position: relative; Moved to animations.css */
+}
+
+/* General Form Submit/Button Styles */
+input[type="submit"],
+button {
+    padding: 8px 15px;
+    border: 1px solid var(--primary-dark);
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    margin-right: 10px;
+}
+
+input[type="submit"]:hover,
+button:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+input[type="submit"]:disabled {
+    background-color: var(--disabled-bg);
+    border-color: var(--disabled-color);
+    color: #aaa;
+    cursor: not-allowed;
+}
+
+/* Task Editor Specific Styles */
+.task-editor-textarea {
+    width: 100%;
+    min-height: 300px; /* Make textarea reasonably tall */
+    font-family: Consolas, monospace; /* Use monospace for markdown editing */
+    font-size: 0.9em;
+    line-height: 1.5;
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: #fff;
+    margin-bottom: 15px;
+}
+
+#task-editor h2 {
+    margin-top: 0;
+}
+
+.button-cancel {
+    background-color: #f8f8f8;
+    border-color: #ccc;
+    color: var(--text-color);
+}
+
+.button-cancel:hover {
+    background-color: #eee;
+    border-color: #bbb;
+} 

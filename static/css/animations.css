@@ -1,0 +1,26 @@
+/* static/css/animations.css */
+
+/* --- Animation Targets --- */
+
+/* Add transition to the NEW swappable wrapper */
+#content-swap-wrapper {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.32s ease-in-out, transform 0.32s ease-in-out;
+    width: 100%; /* Should fill the main content area */
+    box-sizing: border-box;
+}
+
+/* HTMX State Classes for Animation */
+
+/* State 1: Element content is being swapped out */
+/* Applied to the #content-swap-wrapper element *being replaced*. */
+.htmx-swapping {
+    opacity: 0 !important;
+    transform: translateY(-20px) !important; /* Slide up slightly on exit */
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out !important;
+}
+
+/* Other position rules that affect layout/animation */
+#task-editor { position: relative; }
+.details-container { position: relative; } 

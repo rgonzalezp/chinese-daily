@@ -1,0 +1,113 @@
+/* static/css/calendar.css */
+
+/* NEW: Calendar Controls Styles */
+.calendar-controls {
+    display: flex;
+    justify-content: space-between; /* Keep space between ends */
+    align-items: center;
+    padding: 5px 5px; /* Reduced padding */
+    margin-bottom: 5px; /* Reduced space below controls */
+    border-bottom: 1px solid var(--border-color);
+    gap: 10px; /* Add gap between control items */
+}
+
+.cal-month-year {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: var(--heading-color);
+    text-align: center; /* Center month/year text */
+    flex-grow: 1; /* Allow month/year to take up space */
+}
+
+.cal-nav {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: #fff;
+    color: var(--text-color);
+    text-decoration: none;
+    white-space: nowrap; /* Prevent wrapping */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.cal-nav.today-nav {
+    /* Optional: Slightly different style for Today */
+    border-color: var(--primary-dark);
+}
+
+.cal-nav:hover {
+    background-color: var(--subtle-bg);
+    border-color: var(--primary-color);
+    color: var(--heading-color);
+    text-decoration: none;
+}
+
+/* Calendar Grid Styles */
+.calendar-grid {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: fixed;
+}
+
+.calendar-header th {
+    font-weight: normal;
+    color: var(--text-color);
+    padding: 8px 0;
+    text-align: center;
+    font-size: 0.9em;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.calendar-cell {
+    border: 1px solid var(--border-color);
+    height: 80px;
+    vertical-align: top;
+    padding: 5px;
+    position: relative;
+    text-align: left;
+    transition: background-color 0.2s ease;
+}
+
+.calendar-cell.empty {
+    background-color: var(--subtle-bg);
+    border-color: var(--border-color);
+}
+
+.calendar-cell.active {
+    cursor: pointer;
+}
+
+/* Apply hover effect to the active cell itself */
+.calendar-cell.active:hover {
+    background-color: var(--primary-light);
+}
+
+.day-number {
+    font-size: 0.85em;
+    color: var(--text-color);
+    padding: 3px 5px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.calendar-cell.today {
+    background-color: var(--primary-light); /* Use light pink for today */
+    border-color: var(--primary-color);
+}
+
+.calendar-cell.today .day-number {
+    font-weight: bold;
+    color: var(--heading-color);
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Calendar Wrapper Transition (might be obsolete?) */
+/* 
+#calendar-wrapper {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+    position: relative;
+}
+*/ 
