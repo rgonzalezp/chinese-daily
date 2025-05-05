@@ -55,7 +55,7 @@
 .EasyMDEContainer  {
   /* This is often the scrollable container */
   overflow-x: hidden !important; /* Hide horizontal scrollbar */
-  overflow-y: auto; /* Explicitly handle vertical scrolling here */
+  /*overflow-y: auto; /* Explicitly handle vertical scrolling here */
 }
 
 /* CodeMirror internal scroll */
@@ -88,6 +88,12 @@ textarea#notes-editor-textarea {
     /* We keep it in the DOM for EasyMDE and form submission */
 }
 
+.CodeMirror-vscrollbar {
+    right: 0;
+    top: 0;
+    overflow-x: hidden;
+    overflow-y: hidden!important;
+  }
 /* Media Query for Mobile Adjustments */
 @media (max-width: 768px) {
     .EasyMDEContainer {

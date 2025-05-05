@@ -15,8 +15,78 @@
 }
 
 /* Notes editor form - Make it a positioning context for the drawer */
-.notes-editor-form {
+.notes-editor-form  {
+    display: flex;
     position: relative;
+    flex-direction: column;
+    /* Ensure container takes available space if needed, but primarily driven by content */
+}
+
+.CodeMirror-fullscreen{
+    height: 85% !important;
+    overflow-y: hidden !important;
+}
+.editor-preview-active-side {
+    height: 85% !important;
+    overflow-y: auto!important;
+}
+
+
+/* Target the CodeMirror editor specifically for ordering */
+.notes-editor-form .CodeMirror {
+    order: 1; /* Editor is first */
+    /* Let editor grow/shrink naturally */
+    flex-grow: 0; 
+    flex-shrink: 1;
+    /* Add bottom margin to separate from feedback/button */
+    margin-bottom: 10px; 
+}
+
+.notes-editor-form #notes-save-feedback-area {
+    order: 2; /* Feedback area is second */
+    flex-shrink: 0; /* Don't shrink feedback area */
+     /* Remove margin-bottom if it exists, rely on form/button margin */
+    margin-bottom: 5px; /* Add small space before button */
+}
+
+.notes-editor-form button[hx-post*="/save-date/"] {
+    order: 3; /* Save button is last */
+    flex-shrink: 0; /* Don't shrink button */
+     /* Remove margin-top if exists, rely on feedback margin */
+    margin-top: 0; 
+}
+
+/* If there's a paragraph instead of a button (non-editable state) */
+.notes-editor-form p {
+    order: 3; /* Place it where the button would be */
+    flex-shrink: 0;
+    margin-top: 5px; /* Add some space above */
+}
+
+/* Ensure the initial textarea doesn't cause layout jumps before MDE loads */
+/* Hide it cleverly - opacity is better than display:none for MDE init */
+.notes-editor-form textarea#notes-editor-textarea { 
+    order: 1; /* Keep its place */
+    opacity: 0;
+    height: 0; /* Minimize space */
+    border: none; /* Remove border */
+    padding: 0;
+    margin: 0; /* Remove margins */
+    position: absolute; /* Take out of flow to prevent space usage */
+    z-index: -1; /* Hide behind */
+}
+
+/* Style for the disabled state visual indicator */
+.editor-disabled {
+    opacity: 0.7; 
+    /* You might want to change the background or border too */
+    background-color: var(--disabled-bg, #f0f0f0); /* Add a fallback */
+    cursor: not-allowed;
+}
+
+.EasyMDEContainer.editor-disabled .CodeMirror {
+    background-color: var(--disabled-bg, #f0f0f0); /* Style codemirror too */
+     cursor: not-allowed;
 }
 
 /* Notes editor textarea */
@@ -47,19 +117,17 @@ textarea:disabled {
 
 /* NEW: Read-Only Notes View Styling */
 .notes-readonly-view {
-    padding: 15px;
-    border: 1px dashed var(--border-color); /* Dashed border to hint interactivity */
-    border-radius: 4px;
-    background-color: #fff; /* Or potentially var(--subtle-bg) ? */
-    margin-bottom: 15px; /* Space below */
-    min-height: 250px; /* Match editor height roughly */
-    transition: background-color 0.2s ease; /* For hover effect */
+    border: 1px solid var(--border-color); /* Match editor border */
+    padding: 10px; /* Add some padding */
+    cursor: pointer; /* Indicate it's clickable */
+    min-height: 100px; /* Give it some initial height */
+    border-radius: 4px; /* Match editor radius */
+    background-color: var(--background-alt); /* Slightly different background */
+    margin-bottom: 10px; /* Space before potential edit button */
 }
 
 .notes-readonly-view:hover {
-    background-color: var(--subtle-bg); /* Light background on hover */
-    cursor: pointer; /* Indicate clickable */
-    border-color: var(--primary-color); /* Highlight border on hover */
+    background-color: var(--background-hover); /* Indicate hover */
 }
 
 /* Ensure markdown content inside looks okay */
