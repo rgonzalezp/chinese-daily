@@ -68,7 +68,9 @@ def generate_calendar(year, month):
     calendar_table = Table(Thead(header_row), Tbody(*weeks), cls='calendar-grid')
 
     # Return controls and table WRAPPED in the swappable div
-    return Div(controls, calendar_table, id=config.CONTENT_SWAP_ID.strip('#')) # Use ID without #
+    return Div(controls, calendar_table, 
+               id=config.CONTENT_SWAP_ID.strip('#') # Use ID without #
+              )
 
 # Root route - handles optional year/month for calendar display
 @app.get("/")
@@ -92,7 +94,6 @@ def home(request: Request):
         main_content = Div(calendar_content, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
         return Title("Weekly Task Notes"), \
                Div(
-                   H1("Weekly Task Notes"),
                    Div(sidebar, main_content, cls="layout-container")
                )
     else:

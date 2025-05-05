@@ -11,7 +11,7 @@ from ..main import app
 from .. import config
 from ..services import storage, markdown # Use storage service for file I/O, markdown for rendering
 # Import UI components (if needed) and FastHTML components
-from fasthtml.common import A, Button, Div, Form, Input, P, Textarea, Br, H1, H3, H4, Hr, Script, NotStr, Title
+from fasthtml.common import A, Button, Div, Form, Input, P, Textarea, Br, H1, H3, H4, Hr, Script, NotStr, Title, Span
 # Import sidebar helper
 from ..ui.components import _generate_sidebar, day_nav_button # Import UI helpers
 # ------------------------------------------ #
@@ -90,16 +90,25 @@ def get_date_details(request: Request, date_str: str):
             **{'data-date-str': date_str}
            ),
         Hr(),
-        H4("My Notes"),
+        # Restore H4 to original state
+        H4("My Notes"), 
+        # Remove Span and Div wrapper
         Form(
             Textarea(notes_for_editing, name="notes", id="notes-editor-textarea", 
                      disabled=not is_editable, style="height: 250px;"),
-            Div(id="notes-save-feedback"),
+            # Restore feedback Div location & ID, add min-height
+            Div(id="notes-save-feedback-area", style="min-height: 50px;"), 
             Br(),
-            Input(type="submit", value="Save Notes", disabled=not is_editable,
-                  hx_post=f'/save-date/{date_str}',
-                  hx_target='#notes-save-feedback', hx_swap='innerHTML') 
+            Button("Save Notes", 
+                   type="button", # Prevent default submit
+                   disabled=not is_editable,
+                   hx_post=f'/save-date/{date_str}',
+                   hx_target='#notes-save-feedback-area', 
+                   hx_swap='innerHTML scroll:false', 
+                   style="width: 100%; margin-right: 0;" # Keep style
+                   )
             if is_editable else P("Notes can only be added/edited on or after the selected date."),
+            # Keep action javascript:void(0) on form as extra safety? Optional.
             action="javascript:void(0);"
          , cls="notes-editor-form"),
     ]
@@ -114,7 +123,7 @@ def get_date_details(request: Request, date_str: str):
         main_content = Div(details_content_wrapper, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
         return Title(f"Notes for {date_str}"), \
                Div(
-                   H1("Weekly Task Notes"),
+
                    Div(sidebar, main_content, cls="layout-container")
                )
     else:
@@ -151,16 +160,38 @@ def save_date_notes(date_str: str, notes: str):
     script_tag = None
     if success_msg or error_msg:
         msg_text = success_msg if success_msg else error_msg
-        msg_class = "success-msg" if success_msg else "error-msg"
+        is_success = bool(success_msg)
+        msg_class = "success-msg" if is_success else "error-msg"
+        feedback_style_class = "feedback-block" # Use block style for now
         msg_id = f"msg-{uuid.uuid4()}"
-        message_div = Div(P(msg_text), cls=f"feedback-msg {msg_class}", id=msg_id)
-        script_tag = Script(f"setTimeout(() => document.getElementById('{msg_id}')?.classList.add('fade-out'), 1000)")
+        
+        # Create the feedback div - initially hidden
+        message_div = Div(P(msg_text), 
+                          cls=f"feedback-msg {feedback_style_class} {msg_class}", # No 'visible'
+                          id=msg_id
+                         )
+        
+        # Script to add .visible, then add .fade-out after delay
+        script_content = f"""
+            (function() {{
+                var el = document.getElementById('{msg_id}');
+                if (el) {{
+                    requestAnimationFrame(() => {{
+                        el.classList.add('visible');
+                        setTimeout(() => {{
+                            el.classList.add('fade-out');
+                        }}, 1000); // Timeout back to 1s
+                    }});
+                }}
+            }})();
+        """
+        script_tag = Script(script_content)
 
-    # Return ONLY Feedback
+    # Return ONLY Feedback Div + Script
     if message_div:
         return message_div, script_tag if script_tag else ""
     else:
-        return "" 
+        return ""
 
 # Toggle Task Route
 @app.post("/toggle-task/{date_str}/{idx}")

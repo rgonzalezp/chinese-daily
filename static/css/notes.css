@@ -14,6 +14,11 @@
     /* position: relative; Moved to animations.css */
 }
 
+/* Notes editor form - Make it a positioning context for the drawer */
+.notes-editor-form {
+    position: relative;
+}
+
 /* Notes editor textarea */
 textarea[name="notes"] {
     width: 100%;
@@ -32,4 +37,10 @@ textarea[name="notes"] {
 textarea:disabled {
     background-color: var(--disabled-bg);
     color: #999;
-} 
+}
+
+/* Area where save feedback appears */
+#notes-save-feedback-area {
+    height: 50px; /* Pre-allocate height to prevent layout shifts */
+    /* Add other styles like margin/padding if needed */
+}

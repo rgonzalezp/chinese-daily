@@ -59,6 +59,6 @@ input[type="submit"]:disabled {
 }
 
 .button-cancel:hover {
-    background-color: #eee;
-    border-color: #bbb;
+    background-color: var(--primary-light);
+    border-color: var(--primary-color);
 } 

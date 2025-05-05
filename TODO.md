@@ -4,3 +4,4 @@
 - **Task Checkboxes:** [ x ]Enhance the rendering of task list items (from the `tasks/*.md` files) to include interactive checkboxes. Persist the checked state of these boxes, likely associated with the specific date being viewed.
 - **Saved Note Preview:** When viewing/editing notes for a specific date, add a separate, read-only preview area (perhaps a right sidebar/panel) that displays the *last successfully saved* version of the notes for that date, rendered as Markdown. 
 - **Hide template:** two possibilities. Fully hide the tasks week bar behind a button or make it shorter and on hover make a preview of the tasks pop(which would be just a preview of markdown again). The pop should be like a sliding window coming out 
+- Make the note good markdown by default and on double click make it editable. Add some nice css hovering animation that is in theme with th rest of the app so the user knows something could happen if they double click on it

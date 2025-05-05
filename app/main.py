@@ -1,7 +1,7 @@
 import datetime
 import os
 import uvicorn
-from fasthtml.common import FastHTML, Link, Script
+from fasthtml.common import FastHTML, Link, Script, Head, Meta
 from starlette.staticfiles import StaticFiles
 
 # Assuming config lives alongside main.py in the 'app' directory
@@ -14,51 +14,105 @@ app = FastHTML(
         Link(rel='stylesheet', href='/static/css/main.css'),
         Link(rel='stylesheet', href='https://unpkg.com/easymde/dist/easymde.min.css'),
         Script(src='https://unpkg.com/easymde/dist/easymde.min.js'),
-        Script(src="https://unpkg.com/htmx.org@2.0.1/dist/htmx.min.js"),
+        Script(src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"),
+
         # Add our custom global script for EasyMDE initialization
         Script("""
+            // Global variable to hold the current EasyMDE instance
+            window.currentEasyMDE = null;
+
             function initializeEasyMDE() {
                 var textarea = document.getElementById('notes-editor-textarea');
-                if (!textarea) {
-                    // console.log('Textarea #notes-editor-textarea not found, skipping EasyMDE init.');
-                    return; // Exit if no textarea
-                }
-                console.log('Attempting EasyMDE init for:', textarea.id);
                 
-                // Clean up previous instance if it exists
-                var parent = textarea.parentNode;
-                var existingEditor = parent ? parent.querySelector('.EasyMDEContainer') : null;
-                if (existingEditor) {
-                    console.log("Removing existing EasyMDE container before re-init.");
-                    existingEditor.remove();
-                    textarea.classList.remove('easymde-initialized'); 
+                if (!textarea) {
+                    console.log('Textarea #notes-editor-textarea not found. Cleaning up any existing editor.');
+                    // If textarea is gone, ensure editor instance is cleared
+                    if (window.currentEasyMDE) {
+                        // Attempt to remove visual elements if they somehow linger
+                        try { 
+                            var wrapper = window.currentEasyMDE.element.parentNode.querySelector('.EasyMDEContainer');
+                            if(wrapper) wrapper.remove();
+                         } catch(e) { /* Ignore errors during cleanup */ }
+                        window.currentEasyMDE = null;
+                    }
+                    return; 
+                }
+                console.log('Found textarea:', textarea.id, 'Disabled:', textarea.disabled);
+
+                // Check if a valid instance exists and its element is still in the DOM
+                var editorExists = false;
+                if (window.currentEasyMDE) {
+                    try {
+                        // Check if the CodeMirror wrapper element is still connected
+                        if (window.currentEasyMDE.codemirror && window.currentEasyMDE.codemirror.getWrapperElement().isConnected) {
+                            editorExists = true;
+                        }
+                    } catch (e) {
+                         console.warn("Error checking existing EasyMDE instance:", e);
+                         window.currentEasyMDE = null; // Invalidate potentially broken instance
+                    }
                 }
 
-                // Initialize only if textarea is present, enabled, and not already marked
-                if (!textarea.disabled && !textarea.classList.contains('easymde-initialized')) {
-                    try {
-                        console.log("Initializing EasyMDE...");
-                        var easyMDE = new EasyMDE({
-                            element: textarea, 
-                            spellChecker: false, 
-                            status: false,
-                            lineWrapping: true
-                        });
-                        textarea.classList.add('easymde-initialized');
-                        easyMDE.codemirror.on('change', function() { easyMDE.codemirror.save(); });
-                        console.log("EasyMDE Initialized successfully.");
-                    } catch (e) {
-                        console.error("EasyMDE Init Error:", e);
-                        textarea.classList.remove('easymde-initialized'); // Clean up flag on error
+                if (editorExists) {
+                    // --- Update Existing Instance --- 
+                    console.log('Updating existing EasyMDE instance.');
+                    // Update value from the (potentially new) textarea content
+                    window.currentEasyMDE.value(textarea.value);
+                    
+                    // Update read-only state based on the textarea's disabled property
+                    var isReadOnly = textarea.disabled;
+                    window.currentEasyMDE.codemirror.setOption("readOnly", isReadOnly);
+                    
+                    // Optional: Add/remove a class to the wrapper for visual styling of disabled state?
+                    var editorWrapper = window.currentEasyMDE.codemirror.getWrapperElement();
+                    if(isReadOnly) {
+                        editorWrapper.classList.add('editor-disabled');
+                    } else {
+                        editorWrapper.classList.remove('editor-disabled');
                     }
-                } else if (textarea.disabled) {
-                    console.log('Textarea is disabled, skipping EasyMDE init.');
-                } else if (textarea.classList.contains('easymde-initialized')) {
-                    console.log('Textarea already marked as initialized, skipping EasyMDE init.');
+
+                } else {
+                    // --- Create New Instance --- 
+                    console.log('No valid existing EasyMDE instance found. Creating new one.');
+                    
+                    // Explicitly remove any lingering visual editor elements first
+                    var existingContainer = document.querySelector('.EasyMDEContainer');
+                    if (existingContainer) {
+                        console.log("Removing lingering .EasyMDEContainer before creating new instance.");
+                        existingContainer.remove();
+                    }
+                    window.currentEasyMDE = null; // Ensure it's null before creating
+                    
+                    // Initialize only if textarea is present and *not* disabled
+                    if (!textarea.disabled) {
+                        try {
+                            console.log("Initializing new EasyMDE...");
+                            var easyMDE = new EasyMDE({
+                                element: textarea,
+                                spellChecker: false,
+                                status: false,
+                                lineWrapping: true
+                            });
+                            // Store the new instance globally
+                            window.currentEasyMDE = easyMDE;
+                            
+                            easyMDE.codemirror.on('change', function() { easyMDE.codemirror.save(); });
+                            console.log("New EasyMDE Initialized successfully.");
+                        } catch (e) {
+                            console.error("EasyMDE Init Error:", e);
+                            window.currentEasyMDE = null; // Ensure it's null on error
+                            // Attempt cleanup
+                            var failedContainer = textarea.parentNode?.querySelector('.EasyMDEContainer');
+                            if(failedContainer) failedContainer.remove();
+                        }
+                    } else {
+                        console.log('Textarea is disabled, skipping new EasyMDE creation.');
+                         window.currentEasyMDE = null; // Ensure no instance is stored
+                    }
                 }
             }
 
-            // Run on initial load
+            // Run on initial load and potentially after HTMX swaps (via hx-on::load)
             document.addEventListener('DOMContentLoaded', initializeEasyMDE);
         """)
     ]

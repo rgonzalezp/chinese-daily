@@ -85,9 +85,31 @@ def save_tasks_action(day_name: str, tasks_content: str):
     script_tag = None
     if success_msg or error_msg:
         msg_text = success_msg if success_msg else error_msg
-        msg_class = "success-msg" if success_msg else "error-msg"
-        message_div = Div(P(msg_text), cls=f"feedback-msg {msg_class}", id=msg_id)
-        script_tag = Script(f"setTimeout(() => document.getElementById('{msg_id}')?.classList.add('fade-out'), 1000)")
+        is_success = bool(success_msg)
+        msg_class = "success-msg" if is_success else "error-msg"
+        feedback_style_class = "feedback-block" # Use block style 
+        
+        # Create the block div - initially hidden
+        message_div = Div(P(msg_text), 
+                          cls=f"feedback-msg {feedback_style_class} {msg_class}", # No 'visible'
+                          id=msg_id
+                         )
+        
+        # Script to add .visible, then add .fade-out after delay
+        script_content = f"""
+            (function() {{
+                var el = document.getElementById('{msg_id}');
+                if (el) {{
+                    requestAnimationFrame(() => {{
+                        el.classList.add('visible');
+                        setTimeout(() => {{
+                            el.classList.add('fade-out');
+                        }}, 1000); // Timeout 1s
+                    }});
+                }}
+            }})();
+        """
+        script_tag = Script(script_content)
 
     if message_div:
         main_content_children.insert(0, message_div)
