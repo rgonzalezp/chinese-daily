@@ -11,7 +11,6 @@ A cultural podcast read at ~2–3 characters/sec.
 - Listen without transcript; note down 5 keywords you catch
 - Read along the transcript on the site, filling gaps
 - [x] Shadow (speak along) at slow speed for 1–2 min. 10 min 
-- [ ]
 
 **Link**: [Slow Chinese](https://kitchenknif.github.io/SlowChinese/) 20 min
 

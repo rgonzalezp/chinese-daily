@@ -191,6 +191,37 @@ html {
     color: var(--heading-color);
 }
 
+/* --- NEW: Day/Week Nav Buttons in Detail View --- */
+.day-nav-container {
+    display: flex;
+    justify-content: space-between; /* Space out buttons */
+    align-items: center;
+    margin-bottom: 15px; /* Space below nav */
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.day-nav-button {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: #fff;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+.day-nav-button:hover {
+    background-color: var(--subtle-bg);
+    border-color: var(--primary-color);
+    color: var(--heading-color);
+    text-decoration: none;
+}
+/* --- End Day/Week Nav --- */
+
 /* --- NEW: Markdown Content Styling --- */
 .tasks-display-readonly, .notes-display-readonly { /* Apply to both task & note areas */
     line-height: 1.7;
@@ -657,4 +688,82 @@ html {
 
 /* --- End Main Layout --- */
 
-/* --- Scrollbar Styling --- */ 
+/* --- Scrollbar Styling --- */
+
+/* EasyMDE Editor Styling */
+
+/* 1. Fix max width (pick any value or 100% for fluid) */
+.EasyMDEContainer {
+    width: 720px; /* Fixed width for the parent container */
+}
+
+.EasyMDEContainer .CodeMirror,
+.EasyMDEContainer .CodeMirror-scroll {
+    max-width: 100%; /* Max width matches the parent container's width */
+    width: 100%;     /* Allow it to shrink with the window */
+    box-sizing: border-box; /* Ensure padding/border included */
+}
+    max-width: 800px;          /* <= Set preferred width */
+    width: 100%;               /* let it shrink with window */
+    box-sizing: border-box;    /* Ensure padding/border included */
+}
+
+/* 2. Ensure the underlying textarea stays hidden */
+textarea#notes-editor-textarea {
+    display: none !important; /* Keep this rule */
+}
+
+
+.EasyMDEContainer .CodeMirror {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  /* width/max-width/box-sizing handled above */
+
+  min-height: 350px; /* Increased min-height */
+  /* Enable vertical resizing */
+  /* overflow: auto; */ /* Changed below */
+  overflow-y: hidden; /* Hide this element's vertical scrollbar */
+  resize: vertical;
+   overflow-x: hidden !important;
+}
+
+/* --- Enforce Line Wrapping in CodeMirror (via JS now, but keep overflow hidden) --- */
+.EasyMDEContainer  {
+  /* This is often the scrollable container */
+  overflow-x: hidden !important; /* Hide horizontal scrollbar */
+  overflow-y: auto; /* Explicitly handle vertical scrolling here */
+  /* width/max-width/box-sizing handled above */
+}
+
+.CodeMirror-scroll {
+    overflow-x: hidden !important;
+}
+
+.EasyMDEContainer .CodeMirror pre.CodeMirror-line,
+.EasyMDEContainer .CodeMirror pre.CodeMirror-line-like {
+  /* white-space, word-wrap, overflow-wrap rules removed as lineWrapping:true handles this */
+  width: 100%; 
+  box-sizing: border-box;
+}
+/* ------------------------------------------ */
+
+/* Ensure the toolbar items wrap nicely if the container gets narrow */
+.editor-toolbar {
+    flex-wrap: wrap; 
+}
+
+/* Style the status bar if present (though we disabled it) */
+.editor-statusbar {
+  color: var(--text-secondary);
+  font-size: 0.8em;
+}
+
+/* Adjustments for toolbar button colors if needed (already addressed) */
+/* ... */
+
+/* --- NEW: Hide raw textarea used by EasyMDE --- */
+textarea#notes-editor-textarea {
+    display: none !important; /* Hide the original textarea */
+    /* We keep it in the DOM for EasyMDE and form submission */
+}
+/* --------------------------------------------- */ 
