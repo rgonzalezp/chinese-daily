@@ -1,0 +1,46 @@
+/* Minimalist styles inspired by Bear Blog - to be added */
+
+body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #333;
+    background-color: #fdfdfd;
+}
+
+h1, h2, h3 {
+    line-height: 1.2;
+}
+
+/* Add more styles later */
+
+.calendar-container {
+    display: flex;
+    justify-content: space-around; /* Or space-between */
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #eee; /* Light grey background for the calendar */
+    border-radius: 5px;
+}
+
+.day-button {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+
+.day-button:hover {
+    background-color: #f0f0f0;
+}
+
+.details-container {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px dashed #ccc; /* Dashed border to show the area */
+    min-height: 100px; /* Ensure it has some height initially */
+} 
