@@ -10,13 +10,14 @@ A cultural podcast read at ~2–3 characters/sec.
 - Pick an episode (~5–8 min)—e.g. "204 – 美图秀秀"
 - Listen without transcript; note down 5 keywords you catch
 - Read along the transcript on the site, filling gaps
-- Shadow (speak along) at slow speed for 1–2 min
+- [x] Shadow (speak along) at slow speed for 1–2 min. 10 min 
+- [ ]
 
-**Link**: [Slow Chinese](https://kitchenknif.github.io/SlowChinese/)
+**Link**: [Slow Chinese](https://kitchenknif.github.io/SlowChinese/) 20 min
 
 ### 2. Native-speed reinforcement → "Mandarin Bean"
 
-Short (~3–5 min) HSK-3/4-level stories, read at normal pace, with full transcripts and English.
+Short (~3–5 min) HSK-3/4-level stories, read at normal pace, with full transcripts and English. 10 min
 
 **Why?** Bridges the gap to real‐world speed, reinforces new vocab in context.
 

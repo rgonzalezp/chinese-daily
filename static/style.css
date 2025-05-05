@@ -249,6 +249,17 @@ html {
     padding-left: 15px;
     color: #666;
 }
+
+/* --- Ensure Task Checkboxes are Clickable --- */
+.tasks-display-readonly input[type="checkbox"] {
+    pointer-events: auto; /* Allow clicks on checkboxes */
+    cursor: pointer;       /* Show pointer cursor */
+    /* Optional: Adjust margin or vertical alignment */
+    /* margin-right: 5px; */
+    /* vertical-align: middle; */
+}
+/* -------------------------------------------- */
+
 /* --- End Markdown Styling --- */
 
 /* Base & Typography */

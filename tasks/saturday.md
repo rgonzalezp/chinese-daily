@@ -3,7 +3,7 @@
 ### 1. Pick a single "hard" structure
 e.g. 连 … 都 (也) to mean "even…"
 
-### 2. Study authoritatively on Chinese Grammar Wiki
+### 2. Study authoritatively on Chinese Grammar Wiki  15 min
 - Explanation + patterns + multiple examples
 - [Example: Expressing "even" with "lian" and "dou"](https://resources.allsetlearning.com/chinese/grammar/expressing_%22even%22_with_%22lian%22_and_%22dou%22)
 - For other advanced points, browse the [C1 grammar points list](https://resources.allsetlearning.com/chinese/grammar/C1_grammar_points)
@@ -14,6 +14,6 @@ e.g. 连 … 都 (也) to mean "even…"
 - Record yourself speaking them aloud (phone voice memo)
 - Check/correct via language-exchange (Tandem/HelloTalk) or a writing-correction community (Lang-8)
 
-### 4. Reinforcement
+### 4. Reinforcement 15 min
 - Flag any "leech" cards in Anki, add these new example sentences as flashcards
 - At your next Du Chinese or The Chairman's Bao session, spot the pattern in real text

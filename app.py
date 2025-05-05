@@ -6,6 +6,12 @@ from starlette.staticfiles import StaticFiles # Re-add StaticFiles import
 from starlette.requests import Request # Import Request for query params
 from starlette.responses import RedirectResponse # For redirects if needed
 import uuid # Import uuid for unique IDs
+# --- NEW: Import mistune renderer and plugin --- #
+from mistune.renderers.html import HTMLRenderer
+# --- NEW: Import mistune plugin --- #
+# from mistune.plugins import plugin_task_lists # Incorrect for v3
+# --- NEW: Import BeautifulSoup --- #
+from bs4 import BeautifulSoup
 
 # Explicit imports - remove serve_static
 from fasthtml.common import FastHTML, Link, Button, Div, Title, H1, H2, H3, P, Textarea, Form, Input, Hr, Br, Table , Tbody, Tr, Thead, Td, Span, A,Th,H4,Ul,Li, Script, NotStr
@@ -30,6 +36,28 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 SHORT_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+
+# --- REVISED: Custom Renderer - Inject index into checkbox --- #
+class ClickableTaskRendererIndexed(HTMLRenderer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._task_counter = -1
+
+    def checkbox_input(self, checked=False, **attrs):
+        self._task_counter += 1 # Increment counter *per checkbox rendered*
+        # Inject data-idx directly into the input tag
+        return f'<input type="checkbox" data-idx="{self._task_counter}" {"checked" if checked else ""}>'
+
+    # No need to override list_item if index is on the input
+
+# --- Create markdown instance with plugin AND REVISED custom renderer (v3 style) --- #
+markdown_parser = mistune.create_markdown(
+    escape=False,
+    plugins=['task_lists'],
+    renderer=ClickableTaskRendererIndexed() # Use the *new* renderer
+)
+# --------------------------------------------------------
 
 # Helper function for SIDEBAR day buttons
 def create_sidebar_day_button(day):
@@ -245,7 +273,7 @@ def save_tasks_action(day_name: str, tasks_content: str):
     # Now only contains the optional message/script and the calendar wrapper
     return Div(*main_content_children, id="main-content-area", cls="main-content")
 
-# Date Detail Route (UPDATED for EasyMDE)
+# Date Detail Route (UPDATED Task Source Logic)
 @app.get("/date/{date_str}")
 def get_date_details(date_str: str):
     try:
@@ -254,26 +282,94 @@ def get_date_details(date_str: str):
     except ValueError:
         return Div(P("Invalid date format.", cls="error-msg"), id='content-swap-wrapper')
 
-    # --- Load CURRENT Tasks Template (for display) ---
-    tasks_file_path = os.path.join("tasks", f"{day_name}.md")
-    tasks_display_content: NotStr | P = P("") # Default to empty P
-    if os.path.exists(tasks_file_path):
-        try:
-            with open(tasks_file_path, 'r', encoding='utf-8') as f:
-                tasks_markdown = f.read()
-                tasks_display_content = NotStr(mistune.html(tasks_markdown))
-
-        except OSError as e:
-            print(f"Error reading task file {tasks_file_path} for display: {e}")
-            tasks_display_content = P(f"Could not load tasks template for {day_name.capitalize()}.")
-    else:
-        tasks_display_content = P(f"No predefined tasks template for {day_name.capitalize()}. Click sidebar link to create one.")
-
-    # --- Load Notes (for editing) --- #
+    tasks_markdown_source = None
+    tasks_display_content: NotStr | P = P("") # Default
     notes_file_path = os.path.join("data", f"{date_str}_notes.md")
-    notes_for_editing = "" # Content for the textarea
-    # Simplified loading - just get the notes part
-    notes_separator = "\n\n---\n\n## My Notes\n\n"
+    tasks_template_path = os.path.join("tasks", f"{day_name}.md")
+    notes_separator = "\n---\n\n## My Notes\n\n"
+
+    # --- PRIORITIZE reading tasks from the existing notes file --- #
+    if os.path.exists(notes_file_path):
+        try:
+            with open(notes_file_path, 'r', encoding='utf-8') as f:
+                full_saved_content = f.read()
+            
+            parts = full_saved_content.split(notes_separator, 1)
+            if len(parts) == 2:
+                # Separator found, use the first part (tasks) from the notes file
+                tasks_markdown_source = parts[0]
+                print(f"--- DEBUG: Using task section from notes file: {notes_file_path} ---")
+            else:
+                # Separator not found in notes file, fall back to template
+                print(f"--- DEBUG: Notes file exists but no separator found, falling back to template: {tasks_template_path} ---")
+                if os.path.exists(tasks_template_path):
+                    with open(tasks_template_path, 'r', encoding='utf-8') as f:
+                        tasks_markdown_source = f.read()
+                else:
+                     tasks_markdown_source = f"## Tasks for {day_name.capitalize()}\n\n_(Template not found)_"
+                     
+        except OSError as e:
+            print(f"Error reading notes file {notes_file_path}, falling back to template: {e}")
+            # Fallback reading template on notes file error
+            if os.path.exists(tasks_template_path):
+                 try:
+                     with open(tasks_template_path, 'r', encoding='utf-8') as f:
+                        tasks_markdown_source = f.read()
+                 except OSError as e2:
+                      print(f"Error reading template file {tasks_template_path} as fallback: {e2}")
+                      tasks_markdown_source = f"## Tasks for {day_name.capitalize()}\n\n_(Error loading tasks)_"
+            else:
+                 tasks_markdown_source = f"## Tasks for {day_name.capitalize()}\n\n_(Template not found)_"
+                 
+    # --- If notes file didn't exist, read from template --- #
+    else:
+        print(f"--- DEBUG: Notes file not found, using template: {tasks_template_path} ---")
+        if os.path.exists(tasks_template_path):
+            try:
+                with open(tasks_template_path, 'r', encoding='utf-8') as f:
+                    tasks_markdown_source = f.read()
+            except OSError as e:
+                 print(f"Error reading template file {tasks_template_path}: {e}")
+                 tasks_markdown_source = f"## Tasks for {day_name.capitalize()}\n\n_(Error loading tasks)_"
+        else:
+             tasks_markdown_source = f"## Tasks for {day_name.capitalize()}\n\n_(Template not found)_"
+
+    # --- Render the chosen markdown source --- #
+    if tasks_markdown_source is not None:
+        try:
+            tasks_html_output = markdown_parser(tasks_markdown_source)
+            # Process with BeautifulSoup to add data-idx AND HTMX attributes
+            soup = BeautifulSoup(tasks_html_output, 'html.parser')
+            checkboxes = soup.select('li.task-list-item input.task-list-item-checkbox[type="checkbox"]')
+            for idx, cb in enumerate(checkboxes):
+                # Add data-idx
+                cb['data-idx'] = str(idx)
+                # Add HTMX attributes directly
+                cb['hx-post'] = f'/toggle-task/{date_str}/{idx}'
+                cb['hx-trigger'] = 'change'
+                cb['hx-swap'] = 'none'
+                # --- ADD BACK hx-vals --- #
+                # Send checked state as string "true" or "false"
+                # Use cb.has_attr("checked") because BeautifulSoup attribute access is different
+                is_checked_str = "true" if cb.has_attr("checked") else "false"
+                cb['hx-vals'] = f'{{"checked": "{is_checked_str}"}}' 
+                # ------------------------ #
+                
+                # Ensure disabled is removed
+                if 'disabled' in cb.attrs:
+                    del cb['disabled']
+                    
+            modified_html_output = str(soup)
+            tasks_display_content = NotStr(modified_html_output)
+        except Exception as e:
+            print(f"Error processing task markdown: {e}")
+            tasks_display_content = P(f"Could not render tasks for {day_name.capitalize()}.")
+    else:
+        # Should not happen if logic above is correct, but safety net
+        tasks_display_content = P(f"Could not load task source for {day_name.capitalize()}.")
+
+    # --- Load Notes for Editor (separate logic) --- #
+    notes_for_editing = "" 
     if os.path.exists(notes_file_path):
         try:
             with open(notes_file_path, 'r', encoding='utf-8') as f:
@@ -282,10 +378,9 @@ def get_date_details(date_str: str):
             if len(parts) == 2:
                 notes_for_editing = parts[1]
             else:
-                # Handle old format or notes only
-                notes_for_editing = full_saved_content # Assume all content is notes if separator not found
+                notes_for_editing = full_saved_content 
         except OSError as e:
-            print(f"Error reading notes file {notes_file_path}: {e}")
+            print(f"Error reading notes file {notes_file_path} for editor: {e}")
             notes_for_editing = "Error loading saved notes."
 
     # --- Determine if editable --- #
@@ -301,7 +396,11 @@ def get_date_details(date_str: str):
                   ), cls="back-button-container"),
         H3(f"{date_obj.strftime('%A, %B %d, %Y')}"),
         H4("Tasks"),
-        Div(tasks_display_content, cls="tasks-display-readonly"),
+        # Use explicit dictionary for data attribute for robustness
+        Div(tasks_display_content, 
+            cls="tasks-display-readonly", 
+            **{'data-date-str': date_str} # Use dict form for data attribute
+           ),
         Hr(),
         H4("My Notes"),
         # --- Form containing the Textarea for EasyMDE --- #
@@ -373,7 +472,7 @@ def get_date_details(date_str: str):
             }}
             */
             """
-        )
+        ),
     ]
     # Wrap the details in the swappable div
     return Div(*details_children, id='content-swap-wrapper')
@@ -455,6 +554,79 @@ def save_date_notes(date_str: str, notes: str):
         # No message, maybe return 204 No Content? Requires Response class.
         # For simplicity with FastHTML components, return an empty string.
         return ""
+
+# --- Server route to handle checkbox toggle (REVISED: Blind Toggle) --- #
+@app.post("/toggle-task/{date_str}/{idx}")
+def toggle_task(date_str: str, idx: int, checked: str): # Keep 'checked' in signature for HTMX but ignore it
+    notes_file_path = os.path.join("data", f"{date_str}_notes.md")
+
+    if not os.path.exists(notes_file_path):
+        print(f"Error: Notes file not found for toggle: {notes_file_path}")
+        return ""
+
+    lines = []
+    try:
+        with open(notes_file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+    except OSError as e:
+        print(f"Error reading notes file {notes_file_path}: {e}")
+        return "" 
+
+    task_section_started = False
+    notes_separator = "\n---\n\n## My Notes\n"
+    current_task_idx = -1
+    found_and_modified = False
+
+    for i, line in enumerate(lines):
+        if not task_section_started and line.strip().startswith("## Tasks for"): 
+            task_section_started = True
+            continue 
+
+        if notes_separator in line:
+             break
+
+        if task_section_started:
+            stripped_line = line.lstrip()
+            is_task_line = stripped_line.startswith("- [ ]") or stripped_line.startswith("- [x]")
+            
+            if is_task_line:
+                current_task_idx += 1
+                if current_task_idx == idx:
+                    original_line = lines[i]
+                    # --- REVISED TOGGLE LOGIC --- #
+                    if "- [ ]" in line:
+                        lines[i] = line.replace("- [ ]", "- [x]", 1)
+                        print(f"DEBUG toggle_task: Toggling line {i} to checked.")
+                    elif "- [x]" in line:
+                        lines[i] = line.replace("- [x]", "- [ ]", 1)
+                        print(f"DEBUG toggle_task: Toggling line {i} to unchecked.")
+                    else:
+                        # Should not happen if is_task_line is true, but safety check
+                        print(f"WARNING toggle_task: Line {i} is task line but contains neither marker?")
+                        break # Skip modification
+                    # --- END REVISED TOGGLE LOGIC --- #
+                    
+                    if lines[i] != original_line:
+                        found_and_modified = True
+                    else:
+                         print(f"--- WARNING toggle_task: Line {i} was NOT modified! Original: '{original_line.strip()}' ---") 
+                        
+                    break # Stop after finding the line
+
+    if not found_and_modified:
+        print(f"Error: Task index {idx} not found or state could not be toggled in {notes_file_path}")
+        return ""
+
+    # Write the modified lines back to the notes file
+    try:
+        with open(notes_file_path, "w", encoding="utf-8") as f:
+            f.writelines(lines)
+        print(f"Successfully toggled task {idx} in {notes_file_path}")
+    except OSError as e:
+        print(f"Error writing updated notes file {notes_file_path}: {e}")
+        return ""
+
+    return ""
 
 # Main entry point remains the same
 if __name__ == "__main__":
