@@ -57,10 +57,10 @@ def generate_calendar(year, month):
                     cell_cls += " today"
                 day_content_children = [Span(str(day_num), cls='day-number')]
                 htmx_attrs = {
-                    'hx_get': f'/date/{date_str}', # Points to notes route
+                    'hx_get': f'/view-day/{date_str}', # NEW: Points to the view/decide route
                     'hx_target': config.CONTENT_SWAP_ID,
                     'hx_swap': swap_outer_html,
-                    'hx-push-url': f'/date/{date_str}'
+                    'hx-push-url': f'/view-day/{date_str}' # Keep push-url as is for now? Or change? Let's keep it simple for now.
                 }
             row.append(Td(*day_content_children, cls=cell_cls, **htmx_attrs))
         weeks.append(Tr(*row))

@@ -23,17 +23,18 @@ app = FastHTML(
 
             function initializeEasyMDE() {
                 var textarea = document.getElementById('notes-editor-textarea');
-                
+                console.log('textarea:', textarea);
                 if (!textarea) {
                     console.log('Textarea #notes-editor-textarea not found. Cleaning up any existing editor.');
                     // If textarea is gone, ensure editor instance is cleared
                     if (window.currentEasyMDE) {
-                        // Attempt to remove visual elements if they somehow linger
-                        try { 
-                            var wrapper = window.currentEasyMDE.element.parentNode.querySelector('.EasyMDEContainer');
-                            if(wrapper) wrapper.remove();
-                         } catch(e) { /* Ignore errors during cleanup */ }
-                        window.currentEasyMDE = null;
+                         window.currentEasyMDE = null;
+                    }
+                    // Also aggressively remove any visual container that might remain
+                    var lingeringContainer = document.querySelector('.EasyMDEContainer');
+                    if (lingeringContainer) {
+                        console.log('Forcefully removing lingering .EasyMDEContainer.');
+                        lingeringContainer.remove();
                     }
                     return; 
                 }
@@ -86,7 +87,7 @@ app = FastHTML(
                     // Initialize only if textarea is present and *not* disabled
                     if (!textarea.disabled) {
                         try {
-                            console.log("Initializing new EasyMDE...");
+                            console.log("--> Attempting to create NEW EasyMDE instance now..."); 
                             var easyMDE = new EasyMDE({
                                 element: textarea,
                                 spellChecker: false,

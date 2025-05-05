@@ -44,3 +44,28 @@ textarea:disabled {
     height: 50px; /* Pre-allocate height to prevent layout shifts */
     /* Add other styles like margin/padding if needed */
 }
+
+/* NEW: Read-Only Notes View Styling */
+.notes-readonly-view {
+    padding: 15px;
+    border: 1px dashed var(--border-color); /* Dashed border to hint interactivity */
+    border-radius: 4px;
+    background-color: #fff; /* Or potentially var(--subtle-bg) ? */
+    margin-bottom: 15px; /* Space below */
+    min-height: 250px; /* Match editor height roughly */
+    transition: background-color 0.2s ease; /* For hover effect */
+}
+
+.notes-readonly-view:hover {
+    background-color: var(--subtle-bg); /* Light background on hover */
+    cursor: pointer; /* Indicate clickable */
+    border-color: var(--primary-color); /* Highlight border on hover */
+}
+
+/* Ensure markdown content inside looks okay */
+.notes-readonly-view > div > :first-child {
+    margin-top: 0; /* Remove potential top margin from first rendered element */
+}
+.notes-readonly-view > div > :last-child {
+    margin-bottom: 0; /* Remove potential bottom margin from last rendered element */
+}

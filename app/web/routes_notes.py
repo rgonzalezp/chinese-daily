@@ -16,19 +16,14 @@ from fasthtml.common import A, Button, Div, Form, Input, P, Textarea, Br, H1, H3
 from ..ui.components import _generate_sidebar, day_nav_button # Import UI helpers
 # ------------------------------------------ #
 
-# Date Detail Route
-@app.get("/date/{date_str}")
-def get_date_details(request: Request, date_str: str):
-    try:
-        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-        day_name = date_obj.strftime('%A').lower()
-    except ValueError:
-        return Div(P("Invalid date format.", cls="error-msg"), id=config.CONTENT_SWAP_ID.strip('#'))
+# --- Helper Functions for Date Detail View --- #
 
-    # --- Get Task Markdown (uses storage service) --- #
+def _build_day_tasks_and_nav(date_obj: datetime.date, date_str: str, day_name: str):
+    """Generates the top part of the day detail view (Nav, Tasks)."""
+    # --- Get Task Markdown --- #
     tasks_markdown_source = storage.read_tasks_for_display(date_str, day_name)
     
-    # --- Render Tasks (uses markdown service, BeautifulSoup) --- #
+    # --- Render Tasks --- #
     tasks_display_content: NotStr | P
     try:
         tasks_html_output = markdown.md_to_html(tasks_markdown_source)
@@ -48,13 +43,6 @@ def get_date_details(request: Request, date_str: str):
     except Exception as e:
         print(f"Error processing task markdown: {e}")
         tasks_display_content = P(f"Could not render tasks.")
-        
-    # --- Load Notes for Editor (uses storage service) --- #
-    notes_for_editing = storage.read_notes_for_editing(date_str)
-
-    # --- Determine if editable --- #
-    today = datetime.date.today()
-    is_editable = (date_obj <= today)
 
     # --- Calculate Nav Dates --- #
     prev_day = date_obj - datetime.timedelta(days=1)
@@ -66,70 +54,162 @@ def get_date_details(request: Request, date_str: str):
     prev_week_str = prev_week.strftime("%Y-%m-%d")
     next_week_str = next_week.strftime("%Y-%m-%d")
 
-    # --- Build Detail Content Wrapper --- #
+    # --- Build Nav Container and Tasks Display --- #
+    nav_container = Div(
+        Button("< Back to Calendar",
+               hx_get="/", hx_target=config.CONTENT_SWAP_ID,
+               hx_swap=f"outerHTML swap:{config.SWAP_DELAY_MS}ms", 
+               hx_push_url="true",
+               cls="button-back"
+              ),
+        day_nav_button("Last Week", prev_week_str),
+        day_nav_button("Yesterday", prev_day_str),
+        day_nav_button("Tomorrow", next_day_str), 
+        day_nav_button("Next Week", next_week_str),
+        cls="day-nav-container"
+    )
+    
+    tasks_display_div = Div(tasks_display_content, 
+                            cls="tasks-display-readonly", 
+                            **{'data-date-str': date_str}
+                           )
+                           
+    return [nav_container, H3(f"{date_obj.strftime('%A, %B %d, %Y')}"), H4("Tasks"), tasks_display_div, Hr()]
+
+# Placeholder for ReadOnlyNotesView component we'll create in Step 3
+def ReadOnlyNotesView(date_str: str, rendered_html: str):
+    return Div(
+        NotStr(rendered_html), # Display rendered HTML
+        # Add HTMX attributes for double-click
+        id=f"notes-view-{date_str}",
+        cls="notes-readonly-view", # Class for styling
+        hx_get=f"/edit-notes/{date_str}", # Endpoint to get the editor
+        hx_target="this",
+        hx_swap="outerHTML transition:true",
+        hx_trigger="dblclick"
+    )
+
+def NotesEditorForm(date_str: str, notes_content: str, is_editable: bool):
+    """Generates the notes editor form component."""
+    return Form(
+        Textarea(notes_content, name="notes", id="notes-editor-textarea", 
+                 disabled=not is_editable, style="height: 250px;"),
+        # Restore feedback Div location & ID, add min-height
+        Div(id="notes-save-feedback-area", style="min-height: 50px;"), 
+        Br(),
+        Button("Save Notes", 
+               type="button", # Prevent default submit
+               disabled=not is_editable,
+               hx_post=f'/save-date/{date_str}',
+               hx_target='#notes-save-feedback-area', 
+               hx_swap='innerHTML scroll:false', 
+               style="width: 100%; margin-right: 0;" # Keep style
+               )
+        if is_editable else P("Notes cannot be edited for this date."),
+        action="javascript:void(0);"
+     , cls="notes-editor-form")
+
+def _build_notes_component(date_obj: datetime.date, date_str: str):
+    """Decides and builds the notes component (read-only or editor)."""
+    today = datetime.date.today()
+    is_editable = (date_obj <= today) # Check editability based on date
+    
+    notes_content_raw = storage.read_notes_for_editing(date_str)
+
+    # Check if content exists AND is not just whitespace
+    if notes_content_raw and notes_content_raw.strip():
+        # Notes exist and have content: Render read-only view
+        
+        try:
+            rendered_html = markdown.md_to_html(notes_content_raw)
+            # Only return read-only if rendering succeeds
+            return ReadOnlyNotesView(date_str, rendered_html)
+        except Exception as e:
+            print(f"Error rendering markdown for {date_str}: {e}")
+            # Fallback to editor if rendering fails
+            return NotesEditorForm(date_str, notes_content_raw, is_editable)
+    else:
+        # No notes OR notes are empty/whitespace: Return editor form
+        # Ensure we pass an empty string if content is None or empty
+        print(f"--- Debug: notes_content_raw={notes_content_raw} ---")
+        content_for_editor = notes_content_raw if notes_content_raw is not None else ""
+        print(f"--- Debug: content_for_editor={content_for_editor} ---")
+        return NotesEditorForm(date_str, content_for_editor, is_editable)
+
+# --- End Helper Functions --- #
+
+
+# --- Main Route - Renamed to /view-day --- #
+@app.get("/view-day/{date_str}") # Renamed route
+def get_date_details_view(request: Request, date_str: str):
+    try:
+        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+        day_name = date_obj.strftime('%A').lower()
+    except ValueError:
+        return Div(P("Invalid date format.", cls="error-msg"), id=config.CONTENT_SWAP_ID.strip('#'))
+
+    # Build the view components using helpers
+    top_part = _build_day_tasks_and_nav(date_obj, date_str, day_name)
+    notes_part = _build_notes_component(date_obj, date_str)
+    
+    # --- REMOVE Debugging --- #
+    # print(f"--- Debug: date_str={date_str} ---") ... etc ...
+    # --- End REMOVE Debugging ---
+    
+    # Combine children
     details_children = [
-        Div(
-            Button("< Back to Calendar",
-                   hx_get="/", hx_target=config.CONTENT_SWAP_ID,
-                   hx_swap=f"outerHTML swap:{config.SWAP_DELAY_MS}ms", 
-                   hx_push_url="true",
-                   cls="button-back"
-                  ),
-            # --- Use UI Helper for nav buttons --- #
-            day_nav_button("Last Week", prev_week_str),
-            day_nav_button("Yesterday", prev_day_str),
-            day_nav_button("Tomorrow", next_day_str), 
-            day_nav_button("Next Week", next_week_str),
-            # ----------------------------------- #
-            cls="day-nav-container"
-        ),
-        H3(f"{date_obj.strftime('%A, %B %d, %Y')}"),
-        H4("Tasks"),
-        Div(tasks_display_content, 
-            cls="tasks-display-readonly", 
-            **{'data-date-str': date_str}
-           ),
-        Hr(),
-        # Restore H4 to original state
+        *top_part,
         H4("My Notes"), 
-        # Remove Span and Div wrapper
-        Form(
-            Textarea(notes_for_editing, name="notes", id="notes-editor-textarea", 
-                     disabled=not is_editable, style="height: 250px;"),
-            # Restore feedback Div location & ID, add min-height
-            Div(id="notes-save-feedback-area", style="min-height: 50px;"), 
-            Br(),
-            Button("Save Notes", 
-                   type="button", # Prevent default submit
-                   disabled=not is_editable,
-                   hx_post=f'/save-date/{date_str}',
-                   hx_target='#notes-save-feedback-area', 
-                   hx_swap='innerHTML scroll:false', 
-                   style="width: 100%; margin-right: 0;" # Keep style
-                   )
-            if is_editable else P("Notes can only be added/edited on or after the selected date."),
-            # Keep action javascript:void(0) on form as extra safety? Optional.
-            action="javascript:void(0);"
-         , cls="notes-editor-form"),
+        notes_part # This is either ReadOnlyNotesView or NotesEditorForm
     ]
+    print(f"--- Debug: notes_part={notes_part} ---")
+    # --- Check if notes_part is the editor form based on its tag --- #
+    needs_mde_init = hasattr(notes_part, 'tag') and notes_part.tag == 'form'
+        
+    # If MDE is needed, append the initialization script directly
+    if needs_mde_init:
+        # Use setTimeout to defer execution slightly after DOM update
+        details_children.append(Script("setTimeout(initializeEasyMDE, 0);")) 
+        
     details_content_wrapper = Div(*details_children, 
-                                  id=config.CONTENT_SWAP_ID.strip('#'),
-                                  hx_trigger="load", 
-                                  **{"hx-on::load": "initializeEasyMDE()"})
+                                  id=config.CONTENT_SWAP_ID.strip('#')
+                                  # REMOVED **htmx_init_attrs
+                                 )
 
     # Return full page or just fragment
     if "hx-request" not in request.headers:
         sidebar = _generate_sidebar()
         main_content = Div(details_content_wrapper, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
-        return Title(f"Notes for {date_str}"), \
-               Div(
-
-                   Div(sidebar, main_content, cls="layout-container")
-               )
+        return Title(f"Day View {date_str}"), \
+               Div(Div(sidebar, main_content, cls="layout-container"))
     else:
         return details_content_wrapper
+# --- End Main Route --- #
 
-# Save Date Notes Route
+# --- NEW: Endpoint to specifically return the editor --- #
+@app.get("/edit-notes/{date_str}")
+def get_notes_editor_component(date_str: str):
+    """Returns only the notes editor component (triggered by dblclick)."""
+    try:
+        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return P("Invalid date.", cls="error-msg")
+        
+    today = datetime.date.today()
+    is_editable = (date_obj <= today)
+    notes_content = storage.read_notes_for_editing(date_str) or ""
+    
+    # Return ONLY the form component, ready for swapping
+    editor_form = NotesEditorForm(date_str, notes_content, is_editable)
+    # --- REVERT to direct script append --- #
+    # Add the initialization script directly after the form
+    # Use setTimeout to defer execution slightly after DOM update
+    return editor_form, Script("setTimeout(initializeEasyMDE, 0);")
+    
+# --- End Editor Endpoint --- #
+
+
+# --- Save Date Notes Route (Remains largely the same) --- #
 @app.post("/save-date/{date_str}")
 def save_date_notes(date_str: str, notes: str):
     error_msg = None
@@ -193,7 +273,7 @@ def save_date_notes(date_str: str, notes: str):
     else:
         return ""
 
-# Toggle Task Route
+# --- Toggle Task Route (Remains the same) --- #
 @app.post("/toggle-task/{date_str}/{idx}")
 async def toggle_task(date_str: str, idx: int):
     """Handles checkbox toggle POST requests. Ignores request body."""
