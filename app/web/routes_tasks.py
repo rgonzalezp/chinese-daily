@@ -42,18 +42,21 @@ def edit_tasks_view(day_name: str):
         Form(
             Textarea(current_tasks_content or "", name="tasks_content", rows=15, cols=80, cls="task-editor-textarea"),
             Br(),
-            Input(type="submit", value="Save Tasks Template",
-                  hx_post=f'/save-tasks/{day_name}',
-                  hx_target=config.MAIN_CONTENT_ID, 
-                  hx_swap=f'innerHTML swap:{config.SWAP_DELAY_MS}ms'
-                 ),
-            Button("Cancel / Back to Calendar",
-                   hx_get="/",
-                   hx_target=config.MAIN_CONTENT_ID,
-                   hx_swap=f"innerHTML swap:{config.SWAP_DELAY_MS}ms",
-                   hx_push_url="true",
-                   cls="button-cancel"
-                  ),
+            Div(
+                Input(type="submit", value="Save Tasks Template",
+                      hx_post=f'/save-tasks/{day_name}',
+                      hx_target=config.MAIN_CONTENT_ID, 
+                      hx_swap=f'innerHTML swap:{config.SWAP_DELAY_MS}ms'
+                     ),
+                Button("Back to Calendar",
+                       hx_get="/",
+                       hx_target=config.MAIN_CONTENT_ID,
+                       hx_swap=f"innerHTML swap:{config.SWAP_DELAY_MS}ms",
+                       hx_push_url="true",
+                       cls="button-cancel"
+                      ),
+                cls="task-button-container"
+            ),
             action="javascript:void(0);"
         ),
         id="task-editor"
@@ -115,6 +118,16 @@ def save_tasks_action(day_name: str, tasks_content: str):
         main_content_children.insert(0, message_div)
         if script_tag:
             main_content_children.insert(1, script_tag)
+
+    # --- Add scroll-to-top script for mobile --- #
+    scroll_script_content = """
+        if (window.innerWidth <= 768) {
+            window.scrollTo(0, 0);
+        }
+    """
+    scroll_script_tag = Script(scroll_script_content)
+    main_content_children.append(scroll_script_tag) # Append ensures it runs after DOM updates
+    # ----------------------------------------- #
 
     # Return the main content area structure
     return Div(*main_content_children, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")

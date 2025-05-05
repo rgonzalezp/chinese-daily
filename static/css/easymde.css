@@ -86,4 +86,23 @@
 textarea#notes-editor-textarea {
     display: none !important; /* Hide the original textarea */
     /* We keep it in the DOM for EasyMDE and form submission */
+}
+
+/* Media Query for Mobile Adjustments */
+@media (max-width: 768px) {
+    .EasyMDEContainer {
+        width: auto; /* Make container full width on mobile */
+    }
+
+    .EasyMDEContainer .CodeMirror {
+        min-height: 250px; /* Optionally reduce min-height on mobile */
+    }
+
+    .editor-toolbar {
+        padding: 2px; /* Reduce padding on mobile */
+    }
+
+    .editor-toolbar > button {
+        padding: 5px; /* Adjust button padding */
+    }
 } 

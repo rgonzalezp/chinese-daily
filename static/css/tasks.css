@@ -61,4 +61,22 @@ input[type="submit"]:disabled {
 .button-cancel:hover {
     background-color: var(--primary-light);
     border-color: var(--primary-color);
+}
+
+/* Media Query for Task Editor Buttons */
+@media (max-width: 768px) {
+    .task-button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* Space between stacked buttons */
+        align-items: stretch; /* Make buttons fill width */
+    }
+
+    .task-button-container > input[type="submit"],
+    .task-button-container > button {
+        width: 100%;
+        text-align: center;
+        margin-right: 0; /* Override default margin */
+        box-sizing: border-box; /* Include padding/border in width */
+    }
 } 

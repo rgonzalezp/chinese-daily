@@ -63,4 +63,11 @@
     background-color: var(--primary-color);
     border-color: var(--primary-dark);
     color: white;
+}
+
+/* Media query for mobile */
+@media (max-width: 768px) {
+    .sidebar-today-button {
+        width: auto; /* Remove fixed width, let it size naturally */
+    }
 } 

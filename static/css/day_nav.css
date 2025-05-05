@@ -57,4 +57,28 @@
     color: var(--heading-color);
     text-decoration: none;
 }
-/* --- End Day/Week Nav --- */ 
+/* --- End Day/Week Nav --- */
+
+/* Media Query for Mobile Nav Buttons */
+@media (max-width: 768px) {
+    .day-nav-container {
+        flex-direction: column; /* Stack buttons vertically */
+        align-items: stretch;   /* Make buttons fill width */
+        gap: 10px;              /* Add space between stacked buttons */
+    }
+
+    .day-nav-button {
+        width: auto;         /* Ensure buttons take full width */
+        text-align: center;    /* Center text in buttons */
+    }
+
+    /* Optional: Adjust back button if it's separate and needs full width */
+    .back-button-container {
+        margin-bottom: 10px; /* Adjust spacing if needed */
+    }
+    .button-back {
+         width: 100%; /* Make back button full width */
+         text-align: center;
+         box-sizing: border-box; /* Include padding/border in width */
+    }
+} 
