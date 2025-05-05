@@ -1,0 +1,147 @@
+
+# ----------------- EasyMDE Configuration Cheat‑Sheet -----------------
+EasyMDE:
+  # ─── Core / mounting ───────────────────────────────────────────────
+  element:         null              # ⇆ DOM – default: first <textarea>:contentReference[oaicite:0]{index=0}
+  initialValue:    ""                # string
+  placeholder:     null              # string
+  autofocus:       false             # boolean:contentReference[oaicite:1]{index=1}
+  autoRefresh:                       # object|false
+    delay:         300               # ms   – set false to disable:contentReference[oaicite:2]{index=2}
+
+  # ─── Content behaviour ─────────────────────────────────────────────
+  lineWrapping:    true              # boolean:contentReference[oaicite:3]{index=3}
+  lineNumbers:     false             # boolean:contentReference[oaicite:4]{index=4}
+  indentWithTabs:  true              # boolean
+  tabSize:         2                 # int
+  direction:       "ltr"             # enum: ltr | rtl
+
+  # ─── Autosave block ────────────────────────────────────────────────
+  autosave:
+    enabled:       false             # boolean
+    uniqueId:      null              # string – **required if enabled**
+    delay:         10000             # ms
+    submit_delay:  10000             # ms
+    text:          ""                # prefix shown in status bar
+    timeFormat:                      # Intl.DateTimeFormatOptions
+      locale:      "en-US"
+      format:      "hour:minute"
+
+  # ─── Size & layout ─────────────────────────────────────────────────
+  minHeight:       "300px"
+  maxHeight:       null              # overrides minHeight if set
+
+  # ─── Parsing (while typing) ────────────────────────────────────────
+  parsingConfig:
+    allowAtxHeaderWithoutSpace: false
+    strikethrough:               true
+    underscoresBreakWords:       false
+  overlayMode:                   # custom CodeMirror overlay
+    mode:    null   # ↻ func
+    combine: true
+
+  # ─── Rendering (preview) ───────────────────────────────────────────
+  previewClass:   "editor-preview"  # string | string[]
+  singleLineBreaks:  true           # GFM carriage returns
+  renderingConfig:
+    codeSyntaxHighlighting: false
+    hljs:            null           # ↻ func – inject highlight.js instance
+    markedOptions:   {}             # ✨ any
+    sanitizerFunction: null         # ↻ func
+
+  previewRender:    null            # ↻ func – (md, preview?) → html
+
+  # ─── Image handling ────────────────────────────────────────────────
+  uploadImage:      false
+  imageMaxSize:     2097152         # bytes (2 MB)
+  imageAccept:      "image/png, image/jpeg"
+  imageUploadEndpoint: null
+  imageUploadFunction: null         # ↻ func(file, onSuccess, onError)
+  imagePathAbsolute: false
+  imageCSRFToken:   null
+  imageCSRFName:    "csrfmiddlewaretoken"
+  imageCSRFHeader:  false
+  previewImagesInEditor: false
+  imagesPreviewHandler: null        # ↻ func(srcText) → img.src
+  imageTexts:                       # i18n/status strings (see docs)
+  errorMessages:                    # i18n/error strings (see docs)
+  errorCallback:    null            # ↻ func(errMsg)
+
+  # ─── Toolbar / icons ───────────────────────────────────────────────
+  toolbar:          [] | false      # array | boolean
+  hideIcons:        []              # string[]
+  showIcons:        []              # string[]
+  iconClassMap:     {}              # map<string,string>
+  toolbarTips:      true
+  toolbarButtonClassPrefix: null
+  blockStyles:
+    bold:   "**" | "__"
+    italic: "*"  | "_"
+    code:   "```" | "~~~"
+  unorderedListStyle: "* | - | +"
+
+  # ─── Status‑bar & misc UX ──────────────────────────────────────────
+  status:           true | []       # boolean | array | custom items
+  onToggleFullScreen: null          # ↻ func(isFull)
+  sideBySideFullscreen: true
+  syncSideBySidePreviewScroll: true
+  styleSelectedText:  true
+  scrollbarStyle:   "native" | "null"
+  spellChecker:     true | ↻ func
+  inputStyle:       "textarea" | "contenteditable"
+  nativeSpellcheck: true
+  shortcuts:        {}              # map<string,string>
+  theme:            "easymde"
+
+  # ─── Advanced hooks ────────────────────────────────────────────────
+  forceSync:        false
+  insertTexts:      {}              # see docs for per‑button arrays
+
+
+Reading the sheet
+Symbol	Meaning
+↻ func	expects a JavaScript function
+⇆ DOM	expects a DOM element
+✨ any	arbitrary object/JSON
+
+The editor will merge this object with its internal defaults, so you only need to override what differs for your project.
+Quick semantic groups (human‑readable)
+
+1. Core mounting & sizing
+element, initialValue, autofocus, minHeight/maxHeight, lineWrapping, lineNumbers, direction.
+GitHub
+GitHub
+
+2. Data safety: Autosave
+Enable autosave.enabled and provide a uniqueId. Use delay/submit_delay to tune write‑through latency.
+GitHub
+
+3. Markdown parsing vs. preview rendering
+
+    Live parsing: parsingConfig, overlayMode.
+
+    Preview rendering: renderingConfig, previewRender, previewClass, singleLineBreaks.
+    GitHub
+    GitHub
+
+4. UX chrome
+Toolbar (toolbar, hideIcons, showIcons, blockStyles), status bar (status, styleSelectedText), full‑screen & side‑by‑side toggles.
+GitHub
+GitHub
+
+5. Image workflow
+Turn on uploadImage, then either:
+
+    Endpoint mode → set imageUploadEndpoint and (optionally) CSRF fields.
+
+    Function mode → supply imageUploadFunction to bypass default network logic.
+    Adjust size/type guards with imageMaxSize, imageAccept. Preview locally with previewImagesInEditor + imagesPreviewHandler.
+    GitHub
+
+6. Internationalisation & errors
+Localise prompts (promptTexts), status strings (imageTexts) and error strings (errorMessages). Provide errorCallback to intercept failures.
+GitHub
+
+7. Power hooks
+onToggleFullScreen, forceSync, custom shortcuts, or injecting your own highlight.js instance via hljs.
+GitHub

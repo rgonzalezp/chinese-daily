@@ -66,6 +66,60 @@
     /* Optional: Adjust margin or vertical alignment */
     /* margin-right: 5px; */
     /* vertical-align: middle; */
+
+    /* --- Custom Checkbox Styling --- */
+    appearance: none; /* Hide default appearance */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    display: inline-block; /* Use inline-block for positioning */
+    position: relative; /* Needed for pseudo-element positioning */
+    width: 16px;  /* Define size */
+    height: 16px;
+    border: 1px solid var(--primary-dark); /* Use theme variable */
+    border-radius: 3px;
+    vertical-align: text-top; /* Align checkbox with top of text */
+    margin-right: 6px; /* Space between checkbox and text */
+    background-color: var(--bg-color); /* Use theme variable */
+    transition: background-color 0.2s ease, border-color 0.2s ease; /* Smooth transition */
+}
+
+/* Style for the checkmark using ::before pseudo-element */
+.tasks-display-readonly input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 4px;
+    /* Position the checkmark */
+    top: 3px; /* Adjusted slightly */
+    left: 3px;
+    border-bottom: 2px solid transparent; /* Hidden by default */
+    border-left: 2px solid transparent; /* Hidden by default */
+    transform: rotate(-45deg); 
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.2s ease, border-color 0.2s ease; /* Smooth transition */
+}
+
+/* Style when checkbox is checked */
+.tasks-display-readonly input[type="checkbox"]:checked {
+    border-color: var(--primary-dark); /* Use theme variable */
+    background-color: var(--primary-color); /* Use theme variable */
+}
+
+/* Show and color the checkmark when checked */
+.tasks-display-readonly input[type="checkbox"]:checked::before {
+    opacity: 1;
+    border-color: var(--bg-color); /* Use theme variable for checkmark color */
+}
+
+/* Hover effect */
+.tasks-display-readonly input[type="checkbox"]:not(:checked):hover {
+    border-color: var(--accent-color); /* Use theme variable */
+}
+
+/* Focus outline style */
+.tasks-display-readonly input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--accent-color); /* Use theme accent color for focus */
+    outline-offset: 1px; /* Add a little space between the border and outline */
 }
 /* -------------------------------------------- */
 

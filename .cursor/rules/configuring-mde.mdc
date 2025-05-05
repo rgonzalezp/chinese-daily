@@ -1,0 +1,6 @@
+---
+description: Whenever the user is working with the mde, make sure to check the documentation for reference
+globs: 
+alwaysApply: false
+---
+There might be functionalities already implemented with easyMDE. Check this file as reference when trying to alter its' default behavior [mde_config.yaml](mdc:mde_config.yaml)

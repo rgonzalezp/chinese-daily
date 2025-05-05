@@ -105,4 +105,12 @@ textarea#notes-editor-textarea {
     .editor-toolbar > button {
         padding: 5px; /* Adjust button padding */
     }
-} 
+}
+
+/* Override EasyMDE fullscreen overflow behavior - REMOVED as JS callback handles it now */
+/*
+body.EasyMDE-fullscreen,
+body.EasyMDE-fullscreen html {
+    overflow: auto !important; 
+}
+*/ 

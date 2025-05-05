@@ -5,8 +5,6 @@ import uuid
 from starlette.requests import Request
 from bs4 import BeautifulSoup
 
-# Assuming this file is in app/web/, import app from app/main.py
-# --- Make imports relative to app package --- #
 from ..main import app
 from .. import config
 from ..services import storage, markdown # Use storage service for file I/O, markdown for rendering
@@ -152,9 +150,7 @@ def get_date_details_view(request: Request, date_str: str):
     top_part = _build_day_tasks_and_nav(date_obj, date_str, day_name)
     notes_part = _build_notes_component(date_obj, date_str)
     
-    # --- REMOVE Debugging --- #
-    # print(f"--- Debug: date_str={date_str} ---") ... etc ...
-    # --- End REMOVE Debugging ---
+    
     
     # Combine children
     details_children = [

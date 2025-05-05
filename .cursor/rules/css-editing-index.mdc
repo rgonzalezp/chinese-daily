@@ -1,0 +1,6 @@
+---
+description: Whenever the user wants to change the styling of the application, you can consult the following file to know where to look in the css files to make changes
+globs: 
+alwaysApply: false
+---
+[index_components.md](mdc:index_components.md) Refer to index_components to figure out the locations of the correct styling sheets based on the requests from the user

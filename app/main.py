@@ -87,12 +87,24 @@ app = FastHTML(
                     // Initialize only if textarea is present and *not* disabled
                     if (!textarea.disabled) {
                         try {
-                            console.log("--> Attempting to create NEW EasyMDE instance now..."); 
+                            console.log("--> Attempting to create NEW EasyMDE instance now...");
+               // Configurations for easyMDE are applied HERE***************************************
                             var easyMDE = new EasyMDE({
                                 element: textarea,
-                                spellChecker: false,
+                                spellChecker: true,
                                 status: false,
-                                lineWrapping: true
+                                lineWrapping: true,
+                                onToggleFullScreen: function(fullscreen) {
+                                    if (fullscreen) {
+                                        requestAnimationFrame(() => {
+                                            document.documentElement.style.overflow = 'auto';
+                                            document.body.style.overflow = 'auto';
+                                        });
+                                    } else {
+                                        document.documentElement.style.overflow = '';
+                                        document.body.style.overflow = '';
+                                    }
+                                }
                             });
                             // Store the new instance globally
                             window.currentEasyMDE = easyMDE;

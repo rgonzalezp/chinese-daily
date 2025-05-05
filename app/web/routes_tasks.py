@@ -11,56 +11,79 @@ from .. import config
 # Import services
 from ..services import storage # Use storage service for file I/O
 # Import UI components (if needed) and FastHTML components
-from fasthtml.common import Button, Div, Form, Input, P, Textarea, Br, H2, Script, NotStr # Add NotStr if needed? Maybe not here
+from fasthtml.common import Button, Div, Form, Input, P, Textarea, Br, H2, Script, NotStr, Title # Add NotStr if needed? Maybe not here
 # Import helpers from other modules if needed
 from .routes_calendar import generate_calendar # Need calendar for redirect after save
+from ..ui.components import _generate_sidebar # ADDED sidebar import
 # ------------------------------------------ #
 
 # Task Editor View
 @app.get("/edit-tasks/{day_name}")
-def edit_tasks_view(day_name: str):
-    if day_name.capitalize() not in config.DAYS_OF_WEEK:
-        return Div(P(f"Invalid day name: {day_name}"),
-                   Button("Back to Calendar", hx_get="/", 
-                          hx_target=config.MAIN_CONTENT_ID, hx_swap="innerHTML",
-                          hx_push_url="true",
-                          cls="button-back"),
-                   id="task-editor-error")
+def edit_tasks_view(request: Request, day_name: str):
+    day_name_capitalized = day_name.capitalize() # Use a variable
+
+    # Centralized error handling return for full page or fragment
+    def _return_error(message: str):
+        error_content = Div(P(message),
+                           Button("Back to Calendar", hx_get="/",
+                                  hx_target=config.MAIN_CONTENT_ID, hx_swap="innerHTML",
+                                  hx_push_url="true",
+                                  cls="button-back"),
+                           id="task-editor-error") # Use consistent ID like task-editor
+        
+        if "hx-request" not in request.headers:
+            sidebar = _generate_sidebar()
+            main_content = Div(error_content, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
+            return Title(f"Error Editing Tasks"), \
+                   Div(Div(sidebar, main_content, cls="layout-container"))
+        else:
+            return error_content # Return only the error div for HTMX swap
+
+    if day_name_capitalized not in config.DAYS_OF_WEEK:
+        return _return_error(f"Invalid day name: {day_name}")
 
     current_tasks_content = storage.read_tasks_template(day_name)
     if current_tasks_content is None: # Handle potential read error if needed
-         return Div(P(f"Error loading tasks for {day_name.capitalize()}."),
-                   Button("Back to Calendar", hx_get="/", 
-                          hx_target=config.MAIN_CONTENT_ID, hx_swap="innerHTML",
-                          hx_push_url="true",
-                          cls="button-back"),
-                   id="task-editor-error")
+         return _return_error(f"Error loading tasks for {day_name_capitalized}.")
 
-    # Build Editor HTML
-    return Div(
-        H2(f"Edit Tasks Template for {day_name.capitalize()}"),
+    # Build Editor HTML fragment
+    editor_content = Div(
+        H2(f"Edit Tasks Template for {day_name_capitalized}"),
         Form(
             Textarea(current_tasks_content or "", name="tasks_content", rows=15, cols=80, cls="task-editor-textarea"),
             Br(),
             Div(
                 Input(type="submit", value="Save Tasks Template",
                       hx_post=f'/save-tasks/{day_name}',
-                      hx_target=config.MAIN_CONTENT_ID, 
+                      hx_target=config.MAIN_CONTENT_ID,
+                      # Adjust swap to replace the main content area on success
                       hx_swap=f'innerHTML swap:{config.SWAP_DELAY_MS}ms'
                      ),
                 Button("Back to Calendar",
                        hx_get="/",
-                       hx_target=config.MAIN_CONTENT_ID,
-                       hx_swap=f"innerHTML swap:{config.SWAP_DELAY_MS}ms",
+                       hx_target=config.MAIN_CONTENT_ID, # Target main content
+                       hx_swap=f"innerHTML swap:{config.SWAP_DELAY_MS}ms", # Swap main content
                        hx_push_url="true",
                        cls="button-cancel"
                       ),
                 cls="task-button-container"
             ),
-            action="javascript:void(0);"
+            action="javascript:void(0);" # Keep this to prevent default form submission
         ),
-        id="task-editor"
+        id="task-editor" # ID for the editor itself, if needed for styling/JS
     )
+
+    # Return full page or just fragment
+    if "hx-request" not in request.headers:
+        sidebar = _generate_sidebar()
+        # Wrap the editor_content in the main content container
+        main_content = Div(editor_content, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
+        # Return the full layout
+        return Title(f"Edit Tasks: {day_name_capitalized}"), \
+               Div(Div(sidebar, main_content, cls="layout-container"))
+    else:
+        # Return only the editor content for HTMX swap
+        return editor_content
 
 # Task Saving Action
 @app.post("/save-tasks/{day_name}")
