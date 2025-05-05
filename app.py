@@ -8,7 +8,7 @@ from starlette.responses import RedirectResponse # For redirects if needed
 import uuid # Import uuid for unique IDs
 
 # Explicit imports - remove serve_static
-from fasthtml.common import FastHTML, Link, Button, Div, Title, H1, H2, H3, P, Textarea, Form, Input, Hr, Br, Table , Tbody, Tr, Thead, Td, Span, A,Th,H4,Ul,Li, Script
+from fasthtml.common import FastHTML, Link, Button, Div, Title, H1, H2, H3, P, Textarea, Form, Input, Hr, Br, Table , Tbody, Tr, Thead, Td, Span, A,Th,H4,Ul,Li, Script, NotStr
 
 # --- Import Custom Component --- #
 # from .components import MarkdownEditor # No longer needed for notes
@@ -256,17 +256,18 @@ def get_date_details(date_str: str):
 
     # --- Load CURRENT Tasks Template (for display) ---
     tasks_file_path = os.path.join("tasks", f"{day_name}.md")
-    tasks_display_html = ""
+    tasks_display_content: NotStr | P = P("") # Default to empty P
     if os.path.exists(tasks_file_path):
         try:
             with open(tasks_file_path, 'r', encoding='utf-8') as f:
                 tasks_markdown = f.read()
-                tasks_display_html = mistune.html(tasks_markdown)
+                tasks_display_content = NotStr(mistune.html(tasks_markdown))
+
         except OSError as e:
             print(f"Error reading task file {tasks_file_path} for display: {e}")
-            tasks_display_html = P(f"Could not load tasks template for {day_name.capitalize()}.")
+            tasks_display_content = P(f"Could not load tasks template for {day_name.capitalize()}.")
     else:
-        tasks_display_html = P(f"No predefined tasks template for {day_name.capitalize()}.")
+        tasks_display_content = P(f"No predefined tasks template for {day_name.capitalize()}. Click sidebar link to create one.")
 
     # --- Load Notes (for editing) --- #
     notes_file_path = os.path.join("data", f"{date_str}_notes.md")
@@ -300,7 +301,7 @@ def get_date_details(date_str: str):
                   ), cls="back-button-container"),
         H3(f"{date_obj.strftime('%A, %B %d, %Y')}"),
         H4("Tasks"),
-        Div(tasks_display_html if isinstance(tasks_display_html, str) else tasks_display_html, cls="tasks-display-readonly"),
+        Div(tasks_display_content, cls="tasks-display-readonly"),
         Hr(),
         H4("My Notes"),
         # --- Form containing the Textarea for EasyMDE --- #

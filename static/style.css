@@ -5,10 +5,12 @@
     --bg-color: #fffafa; /* Snow - very light off-white */
     --text-color: #4d4d4d; /* Dark grey */
     --heading-color: #333333; /* Near black for headings */
-    --primary-color: #ffb6c1; /* LightPink */
-    --primary-light: #ffdde1; /* Lighter pink for hover/bg */
-    --primary-dark: #f0a1ae; /* Slightly darker pink for active/borders */
-    --accent-color: #ffa07a; /* LightSalmon - optional accent */
+    /* --- Darkened Primary Colors --- */
+    --primary-color: #f8a4b3; /* Darker LightPink */
+    --primary-light: #ffd5db; /* Adjusted lighter pink */
+    --primary-dark: #e890a0; /* Adjusted darker pink */
+    /* ----------------------------- */
+    --accent-color: #f08080; /* LightCoral (was LightSalmon #ffa07a) */
     --border-color: #eee; /* Light grey border */
     --subtle-bg: #fdf5f6; /* Very subtle pinkish background */
     --disabled-color: #cccccc;
