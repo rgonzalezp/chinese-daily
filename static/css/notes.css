@@ -23,11 +23,11 @@
 }
 
 .CodeMirror-fullscreen{
-    height: 85% !important;
+    height: 75% !important;
     overflow-y: hidden !important;
 }
 .editor-preview-active-side {
-    height: 85% !important;
+    height: 75% !important;
     overflow-y: auto!important;
 }
 

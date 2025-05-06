@@ -224,7 +224,7 @@ def save_date_notes(date_str: str, notes: str):
     if date_obj > today:
         error_msg = "Cannot save notes for a future date."
     else:
-        # Use storage service to save
+        # Use storage service to save 
         success = storage.save_full_notes_content(date_str, day_name, notes)
         if success:
             success_msg = "Notes saved successfully!"

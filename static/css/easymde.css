@@ -54,6 +54,7 @@
 /* Container scroll behavior */
 .EasyMDEContainer  {
   /* This is often the scrollable container */
+
   overflow-x: hidden !important; /* Hide horizontal scrollbar */
   /*overflow-y: auto; /* Explicitly handle vertical scrolling here */
 }

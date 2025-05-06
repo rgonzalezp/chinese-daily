@@ -82,7 +82,10 @@ def read_tasks_for_display(date_str: str, day_name: str) -> str:
 
 def save_full_notes_content(date_str: str, day_name: str, notes_content: str) -> bool:
     """Constructs the full notes file content (tasks + separator + notes) and saves it."""
-    tasks_markdown = read_tasks_template(day_name) # Always use current template for saving
+
+    # do not read_tasks_template here, we want to read the specific tasks for the date
+    tasks_markdown = read_tasks_for_display(date_str, day_name)
+    print(f"tasks_markdown: {tasks_markdown}")
     if tasks_markdown is None:
         print(f"Warning: Task template for {day_name} not found when saving notes for {date_str}. Saving notes without tasks.")
         tasks_markdown = f"## Tasks for {day_name.capitalize()}\n\n_(Template not found at time of save)_" # Or maybe just empty string?
