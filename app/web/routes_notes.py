@@ -16,32 +16,8 @@ from ..ui.components import _generate_sidebar, day_nav_button # Import UI helper
 
 # --- Helper Functions for Date Detail View --- #
 
-def _build_day_tasks_and_nav(date_obj: datetime.date, date_str: str, day_name: str):
-    """Generates the top part of the day detail view (Nav, Tasks)."""
-    # --- Get Task Markdown --- #
-    tasks_markdown_source = storage.read_tasks_for_display(date_str, day_name)
-    
-    # --- Render Tasks --- #
-    tasks_display_content: NotStr | P
-    try:
-        tasks_html_output = markdown.md_to_html(tasks_markdown_source)
-        soup = BeautifulSoup(tasks_html_output, 'html.parser')
-        checkboxes = soup.select('li.task-list-item input.task-list-item-checkbox[type="checkbox"]')
-        for idx, cb in enumerate(checkboxes):
-            cb['data-idx'] = str(idx)
-            cb['hx-post'] = f'/toggle-task/{date_str}/{idx}'
-            cb['hx-trigger'] = 'change'
-            cb['hx-swap'] = 'none'
-            is_checked_str = "true" if cb.has_attr("checked") else "false"
-            cb['hx-vals'] = f'{{"checked": "{is_checked_str}"}}'
-            if 'disabled' in cb.attrs:
-                del cb['disabled']
-        modified_html_output = str(soup)
-        tasks_display_content = NotStr(modified_html_output)
-    except Exception as e:
-        print(f"Error processing task markdown: {e}")
-        tasks_display_content = P(f"Could not render tasks.")
-
+def _build_day_navigation(date_obj: datetime.date) -> Div:
+    """Generates the navigation component for the day detail view."""
     # --- Calculate Nav Dates --- #
     prev_day = date_obj - datetime.timedelta(days=1)
     next_day = date_obj + datetime.timedelta(days=1)
@@ -52,7 +28,7 @@ def _build_day_tasks_and_nav(date_obj: datetime.date, date_str: str, day_name: s
     prev_week_str = prev_week.strftime("%Y-%m-%d")
     next_week_str = next_week.strftime("%Y-%m-%d")
 
-    # --- Build Nav Container and Tasks Display --- #
+    # --- Build Nav Container --- #
     nav_container = Div(
         Button("< Back to Calendar",
                hx_get="/", hx_target=config.CONTENT_SWAP_ID,
@@ -66,15 +42,86 @@ def _build_day_tasks_and_nav(date_obj: datetime.date, date_str: str, day_name: s
         day_nav_button("Next Week", next_week_str),
         cls="day-nav-container"
     )
-    
-    tasks_display_div = Div(tasks_display_content, 
-                            cls="tasks-display-readonly", 
-                            **{'data-date-str': date_str}
-                           )
-                           
-    return [nav_container, H3(f"{date_obj.strftime('%A, %B %d, %Y')}"), H4("Tasks"), tasks_display_div, Hr()]
+    return nav_container
 
-# Placeholder for ReadOnlyNotesView component we'll create in Step 3
+def _build_day_tasks(date_obj: datetime.date, date_str: str, day_name: str):
+    """Generates the task-related components for the day detail view."""
+    return ReadOnlyTasksBlock(date_obj, date_str, day_name) # Modified to call new component
+
+def ReadOnlyTasksBlock(date_obj: datetime.date, date_str: str, day_name: str):
+    """Generates the read-only display block for tasks with dblclick to edit."""
+    raw_tasks_md = storage.read_raw_tasks(date_str, day_name)
+    tasks_display_content: NotStr | P
+
+    try:
+        tasks_html_output = markdown.md_to_html(raw_tasks_md)
+        soup = BeautifulSoup(tasks_html_output, 'html.parser')
+        checkboxes = soup.select('li.task-list-item input.task-list-item-checkbox[type="checkbox"]')
+        for idx, cb in enumerate(checkboxes):
+            cb['data-idx'] = str(idx)
+            cb['hx-post'] = f'/toggle-task/{date_str}/{idx}'
+            cb['hx-trigger'] = 'change'
+            cb['hx-swap'] = 'none' # Keep as none, toggle happens in backend
+            is_checked_str = "true" if cb.has_attr("checked") else "false"
+            # hx-vals is not strictly needed if the backend doesn't use it for toggle, but good for consistency
+            cb['hx-vals'] = f'{{"checked": "{is_checked_str}"}}'
+            if 'disabled' in cb.attrs: # Ensure checkboxes in display are not disabled
+                del cb['disabled']
+        modified_html_output = str(soup)
+        tasks_display_content = NotStr(modified_html_output)
+    except Exception as e:
+        print(f"Error processing task markdown for ReadOnlyTasksBlock: {e}")
+        tasks_display_content = P(f"Could not render tasks.")
+
+    block_id = f"tasks-block-{date_str}"
+    return Div(
+        H3(f"{date_obj.strftime('%A, %B %d, %Y')}"), 
+        H4("Tasks"), 
+        Div(tasks_display_content, cls="tasks-display-readonly", **{'data-date-str': date_str}),
+        Hr(),
+        # HTMX attributes for double-click to edit
+        id=block_id,
+        cls="tasks-readonly-block", # Class for styling and targeting
+        hx_get=f"/edit-day-tasks/{date_str}",
+        hx_target="this",
+        hx_swap="outerHTML transition:true",
+        hx_trigger="dblclick"
+    )
+
+def TasksEditorForm(date_obj: datetime.date, date_str: str, day_name: str, raw_tasks_md: str, is_editable: bool):
+    """Generates the tasks editor form component."""
+    block_id = f"tasks-block-{date_str}" # Same ID as the read-only block for replacement
+    form_children = [
+        H3(f"{date_obj.strftime('%A, %B %d, %Y')}"), 
+        H4("Tasks"),
+        Textarea(raw_tasks_md, name="tasks_content", id="tasks-editor-textarea", 
+                 disabled=not is_editable, style="height: 200px; width: 100%;"),
+        Div(id="tasks-save-feedback-area", style="min-height: 30px;"), 
+        Br()
+    ]
+    if is_editable:
+        form_children.append(
+            Button("Save Tasks", 
+                   type="button",
+                   disabled=not is_editable,
+                   hx_post=f'/save-day-tasks/{date_str}',
+                   hx_target=f"#{block_id}", # Target the block itself to replace form with new read-only view
+                   hx_swap='outerHTML transition:true', 
+                   hx_include='closest form',
+                   style="width: 100%; margin-right: 0;"
+                   )
+        )
+    else:
+        form_children.append(P("Tasks cannot be edited for this date."))
+
+    return Form(
+        *form_children,
+        id=block_id, # Ensure the form has the same ID for replacement targeting
+        action="javascript:void(0);",
+        cls="tasks-editor-form"
+    )
+
+# --- Component for Read-Only Notes View --- #
 def ReadOnlyNotesView(date_str: str, rendered_html: str):
     return Div(
         NotStr(rendered_html), # Display rendered HTML
@@ -87,25 +134,26 @@ def ReadOnlyNotesView(date_str: str, rendered_html: str):
         hx_trigger="dblclick"
     )
 
+# --- Component for Notes Editor Form (Reinstated) --- #
 def NotesEditorForm(date_str: str, notes_content: str, is_editable: bool):
     """Generates the notes editor form component."""
     return Form(
         Textarea(notes_content, name="notes", id="notes-editor-textarea", 
-                 disabled=not is_editable, style="height: 250px;"),
-        # Restore feedback Div location & ID, add min-height
+                 disabled=not is_editable, style="height: 250px;"), # Original height
         Div(id="notes-save-feedback-area", style="min-height: 50px;"), 
         Br(),
         Button("Save Notes", 
-               type="button", # Prevent default submit
+               type="button",
                disabled=not is_editable,
                hx_post=f'/save-date/{date_str}',
                hx_target='#notes-save-feedback-area', 
                hx_swap='innerHTML scroll:false', 
-               style="width: 100%; margin-right: 0;" # Keep style
+               style="width: 100%; margin-right: 0;"
                )
         if is_editable else P("Notes cannot be edited for this date."),
-        action="javascript:void(0);"
-     , cls="notes-editor-form")
+        action="javascript:void(0);",
+        cls="notes-editor-form"
+    )
 
 def _build_notes_component(date_obj: datetime.date, date_str: str):
     """Decides and builds the notes component (read-only or editor)."""
@@ -147,14 +195,16 @@ def get_date_details_view(request: Request, date_str: str):
         return Div(P("Invalid date format.", cls="error-msg"), id=config.CONTENT_SWAP_ID.strip('#'))
 
     # Build the view components using helpers
-    top_part = _build_day_tasks_and_nav(date_obj, date_str, day_name)
+    nav_component = _build_day_navigation(date_obj)
+    task_components = _build_day_tasks(date_obj, date_str, day_name)
     notes_part = _build_notes_component(date_obj, date_str)
     
     
     
     # Combine children
     details_children = [
-        *top_part,
+        nav_component,
+        task_components,
         H4("My Notes"), 
         notes_part # This is either ReadOnlyNotesView or NotesEditorForm
     ]
@@ -204,6 +254,51 @@ def get_notes_editor_component(date_str: str):
     
 # --- End Editor Endpoint --- #
 
+# --- Task Editing Endpoints --- #
+@app.get("/edit-day-tasks/{date_str}")
+def get_tasks_editor_component(request: Request, date_str: str):
+    """Returns only the tasks editor component."""
+    try:
+        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+        day_name = date_obj.strftime('%A').lower() # Needed for TasksEditorForm
+    except ValueError:
+        return P("Invalid date for tasks editor.", cls="error-msg")
+        
+    today = datetime.date.today()
+    # For tasks, we might allow editing for future dates if they are based on templates
+    # Let's keep is_editable consistent with notes for now, can be changed later.
+    is_editable = (date_obj <= today) 
+    raw_tasks_md = storage.read_raw_tasks(date_str, day_name)
+    
+    editor_form = TasksEditorForm(date_obj, date_str, day_name, raw_tasks_md, is_editable)
+    # Append the script to initialize the *tasks* MDE instance
+    return editor_form, Script("setTimeout(initializeTasksMDE, 0);")
+
+@app.post("/save-day-tasks/{date_str}")
+def save_tasks_content(request: Request, date_str: str, tasks_content: str):
+    """Saves the updated tasks markdown and returns the ReadOnlyTasksBlock."""
+    try:
+        date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+        day_name = date_obj.strftime('%A').lower()
+    except ValueError:
+        # Consider returning an error message that can be displayed in a feedback area
+        return P("Invalid date for saving tasks.", cls="error-msg")
+
+    # Add any validation for tasks_content if needed here
+    
+    success = storage.save_raw_tasks(date_str, day_name, tasks_content)
+    
+    if success:
+        # Return the updated read-only block for HTMX to swap
+        return ReadOnlyTasksBlock(date_obj, date_str, day_name)
+    else:
+        # How to handle save failure? For now, return a simple message.
+        # Ideally, the TasksEditorForm would have a feedback area like notes.
+        # We can enhance this later.
+        # For now, returning the form again with an error might be too complex for current setup.
+        return Div(P("Error saving tasks. Please try again.", cls="error-msg"), 
+                   id=f"tasks-block-{date_str}" # Ensure it replaces the form
+                  ) 
 
 # --- Save Date Notes Route (Remains largely the same) --- #
 @app.post("/save-date/{date_str}")

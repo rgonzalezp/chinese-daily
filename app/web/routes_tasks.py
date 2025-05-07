@@ -42,9 +42,33 @@ def edit_tasks_view(request: Request, day_name: str):
     if day_name_capitalized not in config.DAYS_OF_WEEK:
         return _return_error(f"Invalid day name: {day_name}")
 
-    current_tasks_content = storage.read_tasks_template(day_name)
-    if current_tasks_content is None: # Handle potential read error if needed
-         return _return_error(f"Error loading tasks for {day_name_capitalized}.")
+    # --- Smart pre-fill logic --- #
+    current_tasks_content = None
+    today_date_obj = datetime.date.today()
+    today_date_str = today_date_obj.strftime("%Y-%m-%d")
+    today_day_name = today_date_obj.strftime("%A").lower()
+
+    if day_name.lower() == today_day_name:
+        # Try to load from today's specific daily file first
+        # Uses read_raw_tasks which checks daily file then template, then empty.
+        # For this specific logic, we want to prioritize daily, then template, so this is fine.
+        # However, read_raw_tasks ALREADY falls back to template and then empty string.
+        # To precisely implement: daily -> template -> error, we need a slight adjustment.
+        
+        # Attempt 1: Load from today's specific daily file's task section
+        daily_content_parts = storage.read_notes_file(today_date_str) # Read full file
+        if daily_content_parts is not None:
+            parts = daily_content_parts.split(config.NOTES_SEPARATOR, 1)
+            if len(parts) == 2 and parts[0].strip(): # Check if task part exists and is not empty
+                current_tasks_content = parts[0].strip()
+    
+    if current_tasks_content is None:
+        # Attempt 2: Fallback to the standard template file for the given day_name
+        current_tasks_content = storage.read_tasks_template(day_name)
+    # --- End smart pre-fill logic --- #
+
+    if current_tasks_content is None: # Handle potential read error if needed after all checks
+         return _return_error(f"Error loading tasks for {day_name_capitalized}. No data found in daily file or template.")
 
     # Build Editor HTML fragment
     editor_content = Div(
