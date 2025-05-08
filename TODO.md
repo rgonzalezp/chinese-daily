@@ -11,6 +11,7 @@
 - [x] masterful work. Now the next task might be a bit challenging since it requires some major rewiring (maybe? not sure. you need to give me some advice). We want to make it so that instead of loading the MDE editor when we click on a day, IF THERE IS ALREADY AN EXISTING NOTES FILE, we actually render a good looking markdown formatted version of the file( like in the tasks section). Now, here is the cool part, we want to make it so that if the person double clicks on the notes, we remove the markdown and we load the mde with the notes populated (making sure to do a smooth transition between states) additionally, we want to add a cool hover effect when hovering over the markdown good looking formatted file to signal to the user that it is interactable and that if they double click something will happen. Let's create a clear plan of action and then let's tackle each thing I asked one by one. Don't try to do everything in one go
 - [x]bug when saving is not using the tasks version of the note saved !important
 
-refactor edit tasks endpoint into edit template weekly schedule vs edit task. edit task view
-add visual indicators so that it is clear that tasks and my notes can be double clicked.
-make headers for the date of the day and tasks and my notes bigger
+- [ ] refactor edit tasks endpoint into edit template weekly schedule vs edit task. edit task view
+- [ ] add visual indicators so that it is clear that tasks and my notes can be double clicked.
+- [x] make headers for the date of the day and tasks and my notes bigger
+- [ ] Revise UI vs Web. Not properly separated responsibilities.

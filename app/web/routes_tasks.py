@@ -94,8 +94,7 @@ def edit_tasks_view(request: Request, day_name: str):
             task_form, # The existing form
             cls="tasks-options" # Similar to personalize-options for consistent section styling if needed
         ),
-        id=f"task-editor-content-{day_name.lower()}", # Unique ID for the page content
-        cls="main-content-area" # Class for padding and background from personalize.css
+        id=f"task-editor-page-content-{day_name.lower()}" # Ensure unique ID, and no cls="main-content-area"
     )
 
     # Link to personalize.css for the styles
@@ -105,15 +104,16 @@ def edit_tasks_view(request: Request, day_name: str):
     # Return full page or just fragment
     if "hx-request" not in request.headers:
         sidebar = _generate_sidebar()
-        # Wrap the styled_editor_content in the main content container for full page loads.
-        # The ID MAIN_CONTENT_ID is applied to this outer Div for full page context.
-        # The styled_editor_content itself has cls="main-content-area" for styling consistency.
-        full_page_main_content = Div(styled_editor_content, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
+        # Wrap the styled_editor_content in #content-swap-wrapper, then in #main-content-area
+        # Add .page-content-entry for animation
+        content_for_full_page = Div(styled_editor_content, id="content-swap-wrapper", cls="page-content-entry")
+        full_page_main_content = Div(content_for_full_page, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
         return page_title, linked_css, Div(Div(sidebar, full_page_main_content, cls="layout-container"))
     else:
-        # For HTMX requests, return the title, CSS link, and the new styled content directly.
-        # This content will be swapped into the element with MAIN_CONTENT_ID.
-        return page_title, linked_css, styled_editor_content
+        # HTMX request: return title, CSS, and styled_editor_content wrapped in #content-swap-wrapper
+        # Add .page-content-entry for animation
+        htmx_response_content = Div(styled_editor_content, id="content-swap-wrapper", cls="page-content-entry")
+        return page_title, linked_css, htmx_response_content
 
 # Task Saving Action
 @app.post("/save-tasks/{day_name}")

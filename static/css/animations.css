@@ -1,24 +1,38 @@
 /* static/css/animations.css */
 
-/* --- Animation Targets --- */
+@keyframes contentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px); /* Start slightly lower and faded out */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0); /* End fully visible and in place */
+  }
+}
 
 /* Add transition to the NEW swappable wrapper */
 #content-swap-wrapper {
-    opacity: 1;
-    transform: translateY(0);
+    /* Transitions for general opacity/transform changes if needed by other views */
     transition: opacity 0.32s ease-in-out, transform 0.32s ease-in-out;
     width: 100%; /* Should fill the main content area */
     box-sizing: border-box;
+    /* Removed direct animation: contentEnter ... from here */
+}
+
+/* New class specifically for pages that should use the contentEnter animation */
+.page-content-entry {
+    animation: contentEnter 0.32s ease-in-out forwards;
 }
 
 /* HTMX State Classes for Animation */
 
 /* State 1: Element content is being swapped out */
 /* Applied to the #content-swap-wrapper element *being replaced*. */
-.htmx-swapping {
+.htmx-swapping { /* This class is added by HTMX to the element being swapped out */
     opacity: 0 !important;
     transform: translateY(-20px) !important; /* Slide up slightly on exit */
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out !important;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out !important; /* Ensure this is for exit */
 }
 
 /* Other position rules that affect layout/animation */

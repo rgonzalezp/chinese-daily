@@ -58,12 +58,12 @@ def _generate_sidebar():
 
 # --- Navigation Components --- #
 
-def day_nav_button(label: str, target_date_str: str, target_id: str = config.CONTENT_SWAP_ID):
+def day_nav_button(label: str, target_date_str: str, target_id: str = config.MAIN_CONTENT_ID):
     """Creates a navigation button link for days/weeks."""
     return A(label, cls="day-nav-button",
              hx_get=f"/view-day/{target_date_str}",
              hx_target=target_id,
-             hx_swap=f"outerHTML swap:{config.SWAP_DELAY_MS}ms",
+             hx_swap=f"innerHTML swap:{config.SWAP_DELAY_MS}ms",
              hx_push_url="true")
 
 # Potentially add calendar button helpers here too 

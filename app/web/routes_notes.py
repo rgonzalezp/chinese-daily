@@ -9,7 +9,7 @@ from ..main import app
 from .. import config
 from ..services import storage, markdown # Use storage service for file I/O, markdown for rendering
 # Import UI components (if needed) and FastHTML components
-from fasthtml.common import A, Button, Div, Form, Input, P, Textarea, Br, H1, H3, H4, Hr, Script, NotStr, Title, Span
+from fasthtml.common import  Button, Div, Form,  P, Textarea, Br, H1,H2, H3, H4, Hr, Script, NotStr, Title
 # Import sidebar helper
 from ..ui.components import _generate_sidebar, day_nav_button # Import UI helpers
 # ------------------------------------------ #
@@ -31,8 +31,9 @@ def _build_day_navigation(date_obj: datetime.date) -> Div:
     # --- Build Nav Container --- #
     nav_container = Div(
         Button("< Back to Calendar",
-               hx_get="/", hx_target=config.CONTENT_SWAP_ID,
-               hx_swap=f"outerHTML swap:{config.SWAP_DELAY_MS}ms", 
+               hx_get="/", 
+               hx_target=config.MAIN_CONTENT_ID,
+               hx_swap=f"innerHTML swap:{config.SWAP_DELAY_MS}ms",
                hx_push_url="true",
                cls="button-back"
               ),
@@ -75,8 +76,8 @@ def ReadOnlyTasksBlock(date_obj: datetime.date, date_str: str, day_name: str):
 
     block_id = f"tasks-block-{date_str}"
     return Div(
-        H3(f"{date_obj.strftime('%A, %B %d, %Y')}"), 
-        H4("Tasks"), 
+        H2(f"{date_obj.strftime('%A, %B %d, %Y')}"), 
+        H3("Tasks"), 
         Div(tasks_display_content, cls="tasks-display-readonly", **{'data-date-str': date_str}),
         Hr(),
         # HTMX attributes for double-click to edit
@@ -200,7 +201,7 @@ def get_date_details_view(request: Request, date_str: str):
     details_children = [
         nav_component,
         task_components,
-        H4("My Notes"), 
+        H1("My Notes"), 
         notes_part # This is either ReadOnlyNotesView or NotesEditorForm
     ]
     # --- Check if notes_part is the editor form based on its tag --- #
@@ -212,7 +213,8 @@ def get_date_details_view(request: Request, date_str: str):
         details_children.append(Script("setTimeout(initializeEasyMDE, 0);")) 
         
     details_content_wrapper = Div(*details_children, 
-                                  id=config.CONTENT_SWAP_ID.strip('#')
+                                  id=config.CONTENT_SWAP_ID.strip('#'),
+                                  cls="page-content-entry" # ADDED CLASS for entry animation
                                   # REMOVED **htmx_init_attrs
                                  )
 

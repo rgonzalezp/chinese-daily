@@ -29,12 +29,16 @@ def generate_calendar(year, month):
     # Controls
     controls = Div(
         A("< Prev", href=f"/?year={prev_year}&month={prev_month}", cls="cal-nav",
-          hx_get=f"/?year={prev_year}&month={prev_month}", hx_target=config.CONTENT_SWAP_ID, 
-          hx_swap=swap_outer_html, hx_push_url="true"),
+          hx_get=f"/?year={prev_year}&month={prev_month}", 
+          hx_target=config.MAIN_CONTENT_ID,
+          hx_swap=f"innerHTML swap:{config.SWAP_DELAY_MS}ms",
+          hx_push_url="true"),
         Span(f"{current_dt.strftime('%B %Y')}", cls="cal-month-year"),
         A("Next >", href=f"/?year={next_year}&month={next_month}", cls="cal-nav",
-          hx_get=f"/?year={next_year}&month={next_month}", hx_target=config.CONTENT_SWAP_ID, 
-          hx_swap=swap_outer_html, hx_push_url="true"),
+          hx_get=f"/?year={next_year}&month={next_month}", 
+          hx_target=config.MAIN_CONTENT_ID,
+          hx_swap=f"innerHTML swap:{config.SWAP_DELAY_MS}ms",
+          hx_push_url="true"),
         cls="calendar-controls"
     )
 
@@ -57,10 +61,10 @@ def generate_calendar(year, month):
                     cell_cls += " today"
                 day_content_children = [Span(str(day_num), cls='day-number')]
                 htmx_attrs = {
-                    'hx_get': f'/view-day/{date_str}', # NEW: Points to the view/decide route
-                    'hx_target': config.CONTENT_SWAP_ID,
-                    'hx_swap': swap_outer_html,
-                    'hx-push-url': f'/view-day/{date_str}' # Keep push-url as is for now? Or change? Let's keep it simple for now.
+                    'hx_get': f'/view-day/{date_str}',
+                    'hx_target': config.MAIN_CONTENT_ID,
+                    'hx_swap': f"innerHTML swap:{config.SWAP_DELAY_MS}ms",
+                    'hx-push-url': f'/view-day/{date_str}'
                 }
             row.append(Td(*day_content_children, cls=cell_cls, **htmx_attrs))
         weeks.append(Tr(*row))
@@ -69,7 +73,8 @@ def generate_calendar(year, month):
 
     # Return controls and table WRAPPED in the swappable div
     return Div(controls, calendar_table, 
-               id=config.CONTENT_SWAP_ID.strip('#') # Use ID without #
+               id=config.CONTENT_SWAP_ID.strip('#'), # Use ID without #
+               cls="page-content-entry" # ADDED CLASS for entry animation
               )
 
 # Root route - handles optional year/month for calendar display

@@ -43,7 +43,7 @@ def get_personalize_page(request: Request): # Added request: Request
         ("Personalize", None) # Current page
     ])
 
-    page_content_inner = Main( # Renamed to page_content_inner
+    page_content_inner = Main( 
         breadcrumbs,
         Header(H1("Personalize Your Experience", cls="page-title"), cls="page-header"),
         Section(
@@ -51,8 +51,7 @@ def get_personalize_page(request: Request): # Added request: Request
             theme_grid,
             cls="personalize-options"
         ),
-        id="personalize-content-area", # Changed ID slightly to avoid conflict if MAIN_CONTENT_ID is this ID.
-        cls="main-content-area"
+        id="personalize-page-content" # Ensure a unique ID, and no cls="main-content-area"
     )
     
     linked_css = Style("", src="/static/css/personalize.css")
@@ -61,10 +60,14 @@ def get_personalize_page(request: Request): # Added request: Request
     if "hx-request" not in request.headers:
         # Full page request: include sidebar and full layout
         sidebar = _generate_sidebar()
-        # Wrap the page_content_inner in the main content container for full page loads.
-        # The ID MAIN_CONTENT_ID is applied to this outer Div for full page context.
-        full_page_main_content = Div(page_content_inner, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
+        # The page_content_inner (which is a Main tag) will be wrapped by #content-swap-wrapper here.
+        # Add .page-content-entry for full page load consistency if desired, or rely on fresh load being instant.
+        # For now, applying to ensure animation if JS hydrates and swaps after initial load, though less common.
+        content_for_full_page = Div(page_content_inner, id="content-swap-wrapper", cls="page-content-entry") 
+        full_page_main_content = Div(content_for_full_page, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
         return page_title, linked_css, Div(Div(sidebar, full_page_main_content, cls="layout-container"))
     else:
-        # HTMX request: return only the title, CSS, and the inner content for swapping
-        return page_title, linked_css, page_content_inner 
+        # HTMX request: return title, CSS, and the inner content wrapped in #content-swap-wrapper
+        # Add .page-content-entry class for the animation
+        htmx_response_content = Div(page_content_inner, id="content-swap-wrapper", cls="page-content-entry")
+        return page_title, linked_css, htmx_response_content 
