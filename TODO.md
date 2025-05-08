@@ -12,6 +12,7 @@
 - [x]bug when saving is not using the tasks version of the note saved !important
 
 - [ ] refactor edit tasks endpoint into edit template weekly schedule vs edit task. edit task view
-- [ ] add visual indicators so that it is clear that tasks and my notes can be double clicked.
+- [x] add visual indicators so that it is clear that tasks and my notes can be double clicked.
 - [x] make headers for the date of the day and tasks and my notes bigger
 - [ ] Revise UI vs Web. Not properly separated responsibilities.
+- [ ] Naviation bar in view-day jiggles due to mde width higher than default layout 

@@ -94,42 +94,37 @@ input[type="submit"]:disabled {
     padding: 15px;
     border: 1px solid var(--border-color, #e0e0e0);
     border-radius: 6px;
-
     cursor: pointer; /* Indicates it's interactive (for dblclick) */
 
-    /* Base state for smooth hover */
-    /* transform: scale(1); */
-    transform-origin: center center;
-    /* Transition now only for box-shadow hover effect */
-    transition: box-shadow 0.2s ease-in-out; 
-    /* will-change: transform, box-shadow; */ 
+    /* Base state */
+    transform-origin: center center; /* Still useful if other transforms are added later */
+    /* Final transition for hover effect */
+    transition: box-shadow 0.2s ease-in-out;
 }
 
 .tasks-readonly-block:hover {
     /* Water droplet shadow effect - Using neutral colors */
     box-shadow: 
-        0 0 5px rgba(0, 0, 0, 0.08),  /* Inner, softest glow (neutral) */
-        0 0 10px rgba(0, 0, 0, 0.06), /* Middle glow (neutral) */
-        0 0 15px rgba(0, 0, 0, 0.04), /* Outer, faintest glow (neutral) */
-        0 2px 4px rgba(0,0,0,0.05);   /* Subtle conventional shadow for depth */
-    /* transform: scale(1.02); --- Remains Removed */
+        0 0 5px rgba(0, 0, 0, 0.08),
+        0 0 10px rgba(0, 0, 0, 0.06),
+        0 0 15px rgba(0, 0, 0, 0.04),
+        0 2px 4px rgba(0,0,0,0.05);
 }
 
 /* 
    When HTMX is swapping out an element using `transition:true`,
    it adds the .htmx-swapping class to the element being removed.
-   We can use this to fade out the old content if opacity is part of the transition above.
+   We can use this to fade out the old content.
 */
 .tasks-readonly-block.htmx-swapping,
 .tasks-editor-form.htmx-swapping {
     opacity: 0 !important; /* Fade out old content */
-    /* transform will be handled by FLIP, so no scale here directly via htmx-swapping */
 }
 
 /* --- FLIP Animation Specific Class --- */
+/* Note: JS applies transform directly during FLIP, then adds this class for transition */
 .task-block-animate-transform {
     transition: transform 0.35s ease-in-out; /* Duration for FLIP transform animation */
-    /* transform-origin is set to 'top left' by the JS during FLIP */
 }
 
 .tasks-display-readonly ul {
