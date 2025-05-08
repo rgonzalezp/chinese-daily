@@ -17,7 +17,9 @@ app = FastHTML(
         Script(src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"),
 
         # Add our custom global script for EasyMDE initialization
-        Script(src='/static/js/mde_injection.js')
+        Script(src='/static/js/mde_injection.js'),
+        # Add our new sidebar interactions script
+        Script(src='/static/js/sidebar_interactions.js')
     ]
 )
 

@@ -50,8 +50,8 @@ def _generate_sidebar():
     sidebar = Div(
         today_button,
         H3("Actions", cls="sidebar-title"),
-        templates_button_container,
         personalize_button,
+        templates_button_container,
         id="sidebar", cls="sidebar"
     )
     return sidebar

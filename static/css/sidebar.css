@@ -85,41 +85,51 @@
     padding-left: 0; /* Remove default ul padding */
     margin-top: 5px; /* Space between Templates button and list */
     max-height: 0;
+    opacity: 0; /* Start fully transparent */
     overflow: hidden;
-    transition: max-height 0.5s ease-out; /* Smooth slide down/up */
+    /* Adjusted transition for opacity to match overall cascadeOut duration */
+    transition: max-height 0.6s ease-out, opacity 0.6s ease-out; 
 }
 
-.templates-container:hover .weekday-links-list {
+/* Show the list when .menu-open is on the container */
+.templates-container.menu-open .weekday-links-list {
     max-height: 500px; /* Adjust as needed, should be >= total height of items */
+    opacity: 1; /* Fade in */
 }
 
 .weekday-links-list .sidebar-button {
     padding-left: 25px; /* Indent weekday buttons slightly */
     opacity: 0;
     transform: translateY(-10px);
+    /* Animation will now be triggered when .menu-open is on parent */
+    /* The cascadeIn animation itself remains the same */
+}
+
+/* Staggered animation for weekday buttons, now triggered by .menu-open */
+.templates-container.menu-open .weekday-links-list li .sidebar-button {
+    /* Apply the animation when menu is open */
     animation: cascadeIn 0.3s ease-out forwards;
 }
 
-/* Staggered animation for weekday buttons */
-.templates-container:hover .weekday-links-list li:nth-child(1) .sidebar-button {
+.templates-container.menu-open .weekday-links-list li:nth-child(1) .sidebar-button {
     animation-delay: 0.05s;
 }
-.templates-container:hover .weekday-links-list li:nth-child(2) .sidebar-button {
+.templates-container.menu-open .weekday-links-list li:nth-child(2) .sidebar-button {
     animation-delay: 0.1s;
 }
-.templates-container:hover .weekday-links-list li:nth-child(3) .sidebar-button {
+.templates-container.menu-open .weekday-links-list li:nth-child(3) .sidebar-button {
     animation-delay: 0.15s;
 }
-.templates-container:hover .weekday-links-list li:nth-child(4) .sidebar-button {
+.templates-container.menu-open .weekday-links-list li:nth-child(4) .sidebar-button {
     animation-delay: 0.2s;
 }
-.templates-container:hover .weekday-links-list li:nth-child(5) .sidebar-button {
+.templates-container.menu-open .weekday-links-list li:nth-child(5) .sidebar-button {
     animation-delay: 0.25s;
 }
-.templates-container:hover .weekday-links-list li:nth-child(6) .sidebar-button {
+.templates-container.menu-open .weekday-links-list li:nth-child(6) .sidebar-button {
     animation-delay: 0.3s;
 }
-.templates-container:hover .weekday-links-list li:nth-child(7) .sidebar-button {
+.templates-container.menu-open .weekday-links-list li:nth-child(7) .sidebar-button {
     animation-delay: 0.35s;
 }
 
@@ -128,6 +138,50 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* New animation for items cascading out */
+@keyframes cascadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Apply cascadeOut animation when .menu-closing is active */
+/* We need to ensure this doesn't conflict with cascadeIn if both classes were somehow present */
+.templates-container.menu-closing .weekday-links-list li .sidebar-button {
+    opacity: 1; /* Start visible before animating out if JS is slightly delayed */
+    transform: translateY(0);
+    animation: cascadeOut 0.3s ease-in forwards; /* Increased duration */
+}
+
+/* Staggered animation for cascadeOut - applied to .menu-closing */
+/* Increased stagger delays */
+.templates-container.menu-closing .weekday-links-list li:nth-child(1) .sidebar-button {
+    animation-delay: 0.03s;
+}
+.templates-container.menu-closing .weekday-links-list li:nth-child(2) .sidebar-button {
+    animation-delay: 0.07s;
+}
+.templates-container.menu-closing .weekday-links-list li:nth-child(3) .sidebar-button {
+    animation-delay: 0.12s;
+}
+.templates-container.menu-closing .weekday-links-list li:nth-child(4) .sidebar-button {
+    animation-delay: 0.17s;
+}
+.templates-container.menu-closing .weekday-links-list li:nth-child(5) .sidebar-button {
+    animation-delay: 0.24s;
+}
+.templates-container.menu-closing .weekday-links-list li:nth-child(6) .sidebar-button {
+    animation-delay: 0.29s;
+}
+.templates-container.menu-closing .weekday-links-list li:nth-child(7) .sidebar-button {
+    animation-delay: 0.34s;
 }
 
 .themes-button-container {
@@ -142,6 +196,14 @@
 }
 
 /* Add a little spacing below the templates container if it's hovered and list is open */
-.templates-container:hover {
+/* This should now be based on .menu-open instead of :hover */
+.templates-container.menu-open {
     margin-bottom: 10px; /* Pushes content below when open */
-} 
+}
+
+/* --- Breadcrumb Styles --- */
+.breadcrumb-item.active {
+    color: var(--text-color, #374151); /* Color for the current page text */
+    font-weight: 500;
+}
+
