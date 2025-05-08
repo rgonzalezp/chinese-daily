@@ -38,3 +38,22 @@
 /* Other position rules that affect layout/animation */
 #task-editor { position: relative; }
 .details-container { position: relative; } 
+
+
+/* --- Reusable Hover Glow Effect Not in use. for Floating a card effect --- */
+.hover-effect-glow {
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
+  border-radius: inherit; /* Inherit border-radius from the element it's applied to, if any */
+}
+
+.hover-effect-glow:hover {
+  box-shadow: 
+      0 3px 6px rgba(0, 0, 0, 0.06),  /* Softer, closer shadow */
+      0 8px 15px rgba(0, 0, 0, 0.08), /* Medium diffusion */
+      0 15px 30px rgba(0, 0, 0, 0.1);  /* Wider, softer glow */
+  /* Consider adding a subtle border color change if theme supports it */
+  /* border-color: var(--primary-color-light, transparent); */ 
+  cursor: pointer; /* Indicate interactivity */
+  position: relative; /* Ensure transform doesn't get clipped by parent overflow if any */
+  z-index: 10; /* Bring slightly forward to ensure shadow isn't overlapped by siblings */
+} 

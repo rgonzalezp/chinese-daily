@@ -80,3 +80,122 @@ input[type="submit"]:disabled {
         box-sizing: border-box; /* Include padding/border in width */
     }
 } 
+
+/* --- Task Block Base Styling (Kept for Opacity Transition) --- */
+.tasks-readonly-block,
+.tasks-editor-form {
+     /* Only opacity transition here now */
+    /* transform-origin: center center; */ /* transform-origin will be set by JS for FLIP */
+    opacity: 1; /* Default opacity */
+} 
+
+.tasks-readonly-block {
+    background-color: var(--background-color);
+    padding: 15px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 6px;
+
+    cursor: pointer; /* Indicates it's interactive (for dblclick) */
+
+    /* Base state for smooth hover */
+    /* transform: scale(1); */
+    transform-origin: center center;
+    /* Transition now only for box-shadow hover effect */
+    transition: box-shadow 0.2s ease-in-out; 
+    /* will-change: transform, box-shadow; */ 
+}
+
+.tasks-readonly-block:hover {
+    /* Water droplet shadow effect - Using neutral colors */
+    box-shadow: 
+        0 0 5px rgba(0, 0, 0, 0.08),  /* Inner, softest glow (neutral) */
+        0 0 10px rgba(0, 0, 0, 0.06), /* Middle glow (neutral) */
+        0 0 15px rgba(0, 0, 0, 0.04), /* Outer, faintest glow (neutral) */
+        0 2px 4px rgba(0,0,0,0.05);   /* Subtle conventional shadow for depth */
+    /* transform: scale(1.02); --- Remains Removed */
+}
+
+/* 
+   When HTMX is swapping out an element using `transition:true`,
+   it adds the .htmx-swapping class to the element being removed.
+   We can use this to fade out the old content if opacity is part of the transition above.
+*/
+.tasks-readonly-block.htmx-swapping,
+.tasks-editor-form.htmx-swapping {
+    opacity: 0 !important; /* Fade out old content */
+    /* transform will be handled by FLIP, so no scale here directly via htmx-swapping */
+}
+
+/* --- FLIP Animation Specific Class --- */
+.task-block-animate-transform {
+    transition: transform 0.35s ease-in-out; /* Duration for FLIP transform animation */
+    /* transform-origin is set to 'top left' by the JS during FLIP */
+}
+
+.tasks-display-readonly ul {
+    padding-left: 20px; /* Standard indent for lists */
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.tasks-display-readonly li {
+    margin-bottom: 6px;
+}
+
+.tasks-display-readonly input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer; /* Make checkbox itself feel interactive */
+    vertical-align: middle; /* Align checkbox with text */
+}
+
+/* Styling for the task editor form if needed */
+.tasks-editor-form {
+    padding: 15px;
+
+    border-radius: 6px;
+}
+
+#tasks-editor-textarea {
+    width: 100%;
+    min-height: 150px; /* Decent default height */
+    border: 1px solid var(--border-color-light, #ccc);
+    border-radius: 4px;
+    padding: 8px;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.task-button-container {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Space between buttons */
+    margin-top: 10px;
+}
+
+.task-button-container input[type="submit"],
+.task-button-container button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease;
+}
+
+.task-button-container input[type="submit"] {
+
+    color: white;
+}
+.task-button-container input[type="submit"]:hover {
+    background-color: var(--primary-dark, #0056b3);
+}
+
+.task-button-container .button-cancel {
+    background-color: var(--button-secondary-bg, #6c757d);
+    color: white;
+}
+.task-button-container .button-cancel:hover {
+    background-color: var(--button-secondary-hover-bg, #545b62);
+}

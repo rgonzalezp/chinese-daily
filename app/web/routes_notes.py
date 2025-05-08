@@ -82,7 +82,7 @@ def ReadOnlyTasksBlock(date_obj: datetime.date, date_str: str, day_name: str):
         Hr(),
         # HTMX attributes for double-click to edit
         id=block_id,
-        cls="tasks-readonly-block", # Class for styling and targeting
+        cls="tasks-readonly-block hover-effect-glow", # Class for styling and targeting
         hx_get=f"/edit-day-tasks/{date_str}",
         hx_target="this",
         hx_swap="outerHTML transition:true",
@@ -125,7 +125,7 @@ def ReadOnlyNotesView(date_str: str, rendered_html: str):
         NotStr(rendered_html), # Display rendered HTML
         # Add HTMX attributes for double-click
         id=f"notes-view-{date_str}",
-        cls="notes-readonly-view", # Class for styling
+        cls="notes-readonly-view hover-effect-glow", # Class for styling
         hx_get=f"/edit-notes/{date_str}", # Endpoint to get the editor
         hx_target="this",
         hx_swap="outerHTML transition:true",

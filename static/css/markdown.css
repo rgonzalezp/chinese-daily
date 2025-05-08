@@ -49,7 +49,7 @@
 
 .tasks-display-readonly pre code, .notes-display-readonly pre code {
     background-color: transparent;
-    padding: 0;
+
 }
 
 .tasks-display-readonly blockquote, .notes-display-readonly blockquote {

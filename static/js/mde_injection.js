@@ -274,23 +274,31 @@ htmx.onLoad(function(elt) {
 
         taskBlock.addEventListener('htmx:afterSwap', function(evt) {
             // evt.target is the element that htmx swapped in. 
-            // In this case, it should be the new taskBlock itself (since hx-target="this" or hx-target="#block-id")
             const newContentElement = evt.target;
 
+            // CRUCIAL GUARD: Only proceed if firstRect was captured for THIS swap sequence
+            // and the swapped element is the one we are tracking.
             if (firstRect && newContentElement && newContentElement.isConnected && 
-                newContentElement === taskBlock && // Ensure the event target is the block we attached listener to
+                newContentElement === taskBlock && 
                 (newContentElement.classList.contains('tasks-readonly-block') || newContentElement.classList.contains('tasks-editor-form'))) {
                 
                 const lastRect = newContentElement.getBoundingClientRect();
 
                 const deltaX = firstRect.left - lastRect.left;
-                const deltaY = firstRect.top - lastRect.top;
-                // Handle potential division by zero if new block has zero width/height briefly
+                const deltaY = firstRect.top - lastRect.top; // This should now be safe
                 const deltaW = lastRect.width === 0 ? 1 : firstRect.width / lastRect.width;
                 const deltaH = lastRect.height === 0 ? 1 : firstRect.height / lastRect.height;
 
                 newContentElement.style.transformOrigin = 'top left';
-                newContentElement.style.transform = `translate(${deltaX}px, ${translateY}px) scale(${deltaW}, ${deltaH})`;
+                // Check if any delta is NaN or undefined before applying to avoid invalid transform string
+                if (![deltaX, deltaY, deltaW, deltaH].some(isNaN) && [deltaX, deltaY, deltaW, deltaH].every(val => typeof val === 'number')) {
+                    newContentElement.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${deltaW}, ${deltaH})`;
+                } else {
+                    console.warn('FLIP animation: Invalid delta values. Skipping initial transform.', 
+                                 {deltaX, deltaY, deltaW, deltaH});
+                    // Optionally, still attempt to animate to identity if deltas are bad but element is new
+                    // newContentElement.style.transform = ''; // Or some safe default
+                }
                 
                 // Force reflow to apply the above style before adding transition class
                 newContentElement.offsetHeight; 
