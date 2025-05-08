@@ -29,10 +29,14 @@ app.mount("/static", StaticFiles(directory=config.STATIC_DIR), name="static")
 # For now, direct imports. Ensure these files exist in app/web/
 # The noqa comment prevents linters from complaining about unused imports,
 # as their side effect (route registration) is the purpose.
-from .web import routes_calendar # noqa: F401
-from .web import routes_tasks    # noqa: F401
 from .web import routes_notes    # noqa: F401
+from .web import routes_calendar  # noqa: F401
+from .web import routes_tasks     # noqa: F401
+from .web import routes_personalize # noqa: F401
 # ---------------------------------------------------- #
+
+# Import UI components and other necessary modules
+from .ui.components import _generate_sidebar
 
 if __name__ == "__main__":
     # Create necessary directories if they don't exist (using config)

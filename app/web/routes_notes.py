@@ -95,24 +95,21 @@ def TasksEditorForm(date_obj: datetime.date, date_str: str, day_name: str, raw_t
         H3(f"{date_obj.strftime('%A, %B %d, %Y')}"), 
         H4("Tasks"),
         Textarea(raw_tasks_md, name="tasks_content", id="tasks-editor-textarea", 
-                 disabled=not is_editable, style="height: 200px; width: 100%;"),
+                 disabled=not is_editable, style="height: 400px; width: 100%;"),
         Div(id="tasks-save-feedback-area", style="min-height: 30px;"), 
         Br()
     ]
-    if is_editable:
-        form_children.append(
-            Button("Save Tasks", 
-                   type="button",
-                   disabled=not is_editable,
-                   hx_post=f'/save-day-tasks/{date_str}',
-                   hx_target=f"#{block_id}", # Target the block itself to replace form with new read-only view
-                   hx_swap='outerHTML transition:true', 
-                   hx_include='closest form',
-                   style="width: 100%; margin-right: 0;"
-                   )
-        )
-    else:
-        form_children.append(P("Tasks cannot be edited for this date."))
+    form_children.append(
+        Button("Save Tasks", 
+               type="button",
+               disabled=False,
+               hx_post=f'/save-day-tasks/{date_str}',
+               hx_target=f"#{block_id}", # Target the block itself to replace form with new read-only view
+               hx_swap='outerHTML transition:true', 
+               hx_include='closest form',
+               style="width: 100%; margin-right: 0;"
+               )
+    )
 
     return Form(
         *form_children,
@@ -177,9 +174,7 @@ def _build_notes_component(date_obj: datetime.date, date_str: str):
     else:
         # No notes OR notes are empty/whitespace: Return editor form
         # Ensure we pass an empty string if content is None or empty
-        print(f"--- Debug: notes_content_raw={notes_content_raw} ---")
         content_for_editor = notes_content_raw if notes_content_raw is not None else ""
-        print(f"--- Debug: content_for_editor={content_for_editor} ---")
         return NotesEditorForm(date_str, content_for_editor, is_editable)
 
 # --- End Helper Functions --- #
@@ -208,7 +203,6 @@ def get_date_details_view(request: Request, date_str: str):
         H4("My Notes"), 
         notes_part # This is either ReadOnlyNotesView or NotesEditorForm
     ]
-    print(f"--- Debug: notes_part={notes_part} ---")
     # --- Check if notes_part is the editor form based on its tag --- #
     needs_mde_init = hasattr(notes_part, 'tag') and notes_part.tag == 'form'
         
@@ -265,12 +259,10 @@ def get_tasks_editor_component(request: Request, date_str: str):
         return P("Invalid date for tasks editor.", cls="error-msg")
         
     today = datetime.date.today()
-    # For tasks, we might allow editing for future dates if they are based on templates
-    # Let's keep is_editable consistent with notes for now, can be changed later.
-    is_editable = (date_obj <= today) 
+
     raw_tasks_md = storage.read_raw_tasks(date_str, day_name)
     
-    editor_form = TasksEditorForm(date_obj, date_str, day_name, raw_tasks_md, is_editable)
+    editor_form = TasksEditorForm(date_obj, date_str, day_name, raw_tasks_md, True)
     # Append the script to initialize the *tasks* MDE instance
     return editor_form, Script("setTimeout(initializeTasksMDE, 0);")
 
@@ -284,9 +276,14 @@ def save_tasks_content(request: Request, date_str: str, tasks_content: str):
         # Consider returning an error message that can be displayed in a feedback area
         return P("Invalid date for saving tasks.", cls="error-msg")
 
+    print(f"--- ROUTES: save_tasks_content for {date_str} ---")
+
     # Add any validation for tasks_content if needed here
+    today = datetime.date.today()
+    force_notes_reset = date_obj > today
     
-    success = storage.save_raw_tasks(date_str, day_name, tasks_content)
+    success = storage.save_raw_tasks(date_str, day_name, tasks_content, force_empty_notes=force_notes_reset)
+    print(f"storage.save_raw_tasks returned: {success}")
     
     if success:
         # Return the updated read-only block for HTMX to swap

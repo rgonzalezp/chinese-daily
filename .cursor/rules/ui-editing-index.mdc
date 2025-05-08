@@ -1,0 +1,6 @@
+---
+description: Whenever the user wants to change or add some UI component to the application, you can consult the following file to know where to look as reference or to make changes
+globs: 
+alwaysApply: false
+---
+ Refer to [index_ui_components.md](mdc:index_ui_components.md)  to figure out the locations of the ui component based on the requests from the user. If you add any new UI components please add it and organize it inside [index_ui_components.md](mdc:index_ui_components.md) for your future reference

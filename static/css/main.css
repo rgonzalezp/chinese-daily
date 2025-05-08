@@ -13,6 +13,7 @@
 @import url('tasks.css');
 @import url('feedback.css');
 @import url('easymde.css');
+@import url('personalize.css');
 
 /* --- Task Block Base Styling (Kept for Opacity Transition) --- */
 .tasks-readonly-block,

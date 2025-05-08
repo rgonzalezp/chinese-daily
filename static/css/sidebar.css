@@ -40,7 +40,10 @@
 
 /* --- NEW: Today Button in Sidebar --- */
 .sidebar-today-container {
-    margin-bottom: 10px; /* Reduced space below Today button */
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid;
+    border-color: var(--primary-color);
 }
 
 .sidebar-today-button {
@@ -70,4 +73,75 @@
     .sidebar-today-button {
         width: auto; /* Remove fixed width, let it size naturally */
     }
+}
+
+/* New styles for Templates dropdown and Themes button */
+.templates-container {
+    position: relative; /* For positioning the dropdown */
+}
+
+.weekday-links-list {
+    list-style: none;
+    padding-left: 0; /* Remove default ul padding */
+    margin-top: 5px; /* Space between Templates button and list */
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out; /* Smooth slide down/up */
+}
+
+.templates-container:hover .weekday-links-list {
+    max-height: 500px; /* Adjust as needed, should be >= total height of items */
+}
+
+.weekday-links-list .sidebar-button {
+    padding-left: 25px; /* Indent weekday buttons slightly */
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: cascadeIn 0.3s ease-out forwards;
+}
+
+/* Staggered animation for weekday buttons */
+.templates-container:hover .weekday-links-list li:nth-child(1) .sidebar-button {
+    animation-delay: 0.05s;
+}
+.templates-container:hover .weekday-links-list li:nth-child(2) .sidebar-button {
+    animation-delay: 0.1s;
+}
+.templates-container:hover .weekday-links-list li:nth-child(3) .sidebar-button {
+    animation-delay: 0.15s;
+}
+.templates-container:hover .weekday-links-list li:nth-child(4) .sidebar-button {
+    animation-delay: 0.2s;
+}
+.templates-container:hover .weekday-links-list li:nth-child(5) .sidebar-button {
+    animation-delay: 0.25s;
+}
+.templates-container:hover .weekday-links-list li:nth-child(6) .sidebar-button {
+    animation-delay: 0.3s;
+}
+.templates-container:hover .weekday-links-list li:nth-child(7) .sidebar-button {
+    animation-delay: 0.35s;
+}
+
+@keyframes cascadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.themes-button-container {
+    margin-top: 10px; /* Space above the themes button */
+}
+
+/* Ensuring all sidebar buttons have consistent styling if needed */
+.templates-dropdown-button,
+.themes-button {
+    /* Inherits .sidebar-button styles, add specific overrides here if necessary */
+    /* For example, if they need slightly different padding or margin */
+}
+
+/* Add a little spacing below the templates container if it's hovered and list is open */
+.templates-container:hover {
+    margin-bottom: 10px; /* Pushes content below when open */
 } 

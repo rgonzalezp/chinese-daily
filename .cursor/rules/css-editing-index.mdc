@@ -1,6 +1,6 @@
 ---
-description: Whenever the user wants to change the styling of the application, you can consult the following file to know where to look in the css files to make changes
+description: Whenever the user wants to change or add something to the styling of the application, you can consult the following file to know where to look in the css files to make changes
 globs: 
 alwaysApply: false
 ---
-[index_components.md](mdc:index_components.md) Refer to index_components to figure out the locations of the correct styling sheets based on the requests from the user
+Refer to [index_css_components.md](mdc:index_css_components.md) to figure out the locations of the correct styling sheets based on the requests from the user. If you add any new css classes please add it and organize it inside [index_css_components.md](mdc:index_css_components.md) for your future reference

@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Refer to [index_routes.md](mdc:index_routes.md)  to figure out the different routes of the application and create or change based on the requests from the user. If you add any new routes please add it and organize it inside [index_routes.md](mdc:index_routes.md) for your future reference

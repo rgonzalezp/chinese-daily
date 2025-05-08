@@ -1,0 +1,112 @@
+/* static/css/personalize.css */
+
+/* General page layout for personalize screen */
+.main-content-area#personalize-content {
+    padding: 20px;
+    background-color: var(--background-color, #f9fafb); /* Use theme variable or fallback */
+}
+
+.page-header {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.page-title {
+    font-size: 1.8em;
+    color: var(--heading-color, #111827);
+    margin: 0;
+}
+
+.page-description {
+    font-size: 1em;
+    color: var(--text-color-secondary, #6b7280);
+    margin-bottom: 25px;
+}
+
+/* Theme Grid Styling */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive grid columns */
+    gap: 20px; /* Space between grid items */
+}
+
+.theme-grid-item {
+    display: block; /* To make the <a> tag behave like a block for styling */
+    background-color: var(--card-background-color, #ffffff);
+    border: 1px solid var(--card-border-color, #e5e7eb);
+    border-radius: 8px;
+    padding: 20px;
+    text-decoration: none; /* Remove underline from link */
+    color: inherit; /* Inherit text color */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.theme-grid-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.theme-item-content {
+    /* Content within the card */
+}
+
+.theme-item-title {
+    font-size: 1.25em;
+    color: var(--card-title-color, var(--primary-dark, #374151));
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.theme-item-description {
+    font-size: 0.9em;
+    color: var(--card-text-color, var(--text-color, #4b5563));
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+
+/* Placeholder for if an item is active/selected */
+.theme-grid-item.active {
+    border-color: var(--primary-color, #4f46e5);
+    box-shadow: 0 0 0 2px var(--primary-color, #4f46e5);
+}
+
+/* --- Breadcrumb Styles --- */
+.breadcrumb-nav-container {
+    margin-bottom: 15px; /* Space below breadcrumbs, before page header */
+    font-size: 0.9em;
+}
+
+.breadcrumb {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex; /* Align items in a row */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.breadcrumb-item {
+    display: flex; /* To align separator correctly */
+    align-items: center;
+}
+
+.breadcrumb-item a {
+    color: var(--primary-color, #4f46e5);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">"; /* Separator */
+    padding: 0 0.5em;
+    color: var(--text-color-secondary, #6b7280);
+}
+
+.breadcrumb-item.active {
+    color: var(--text-color, #374151); /* Color for the current page text */
+    font-weight: 500;
+} 

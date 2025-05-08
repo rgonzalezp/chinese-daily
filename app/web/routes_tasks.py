@@ -2,7 +2,7 @@ import datetime
 import uuid
 import os
 
-from starlette.requests import Request # Needed if used, maybe not here
+from starlette.requests import Request
 
 # Assuming this file is in app/web/, import app from app/main.py
 # --- Make imports relative to app package --- #
@@ -11,10 +11,10 @@ from .. import config
 # Import services
 from ..services import storage # Use storage service for file I/O
 # Import UI components (if needed) and FastHTML components
-from fasthtml.common import Button, Div, Form, Input, P, Textarea, Br, H2, Script, NotStr, Title # Add NotStr if needed? Maybe not here
+from fasthtml.common import Button, Div, Form, Input, P, Textarea, Br, H1, H2, Script, Title, Main, Header, Section, Style # NotStr removed as not used
 # Import helpers from other modules if needed
 from .routes_calendar import generate_calendar # Need calendar for redirect after save
-from ..ui.components import _generate_sidebar # ADDED sidebar import
+from ..ui.components import _generate_sidebar, _generate_breadcrumbs # ADDED _generate_breadcrumbs import
 # ------------------------------------------ #
 
 # Task Editor View
@@ -49,13 +49,7 @@ def edit_tasks_view(request: Request, day_name: str):
     today_day_name = today_date_obj.strftime("%A").lower()
 
     if day_name.lower() == today_day_name:
-        # Try to load from today's specific daily file first
-        # Uses read_raw_tasks which checks daily file then template, then empty.
-        # For this specific logic, we want to prioritize daily, then template, so this is fine.
-        # However, read_raw_tasks ALREADY falls back to template and then empty string.
-        # To precisely implement: daily -> template -> error, we need a slight adjustment.
-        
-        # Attempt 1: Load from today's specific daily file's task section
+        # Attempt 1: Load from today's specific daily file's task section if it matches the template day being edited.
         daily_content_parts = storage.read_notes_file(today_date_str) # Read full file
         if daily_content_parts is not None:
             parts = daily_content_parts.split(config.NOTES_SEPARATOR, 1)
@@ -63,51 +57,63 @@ def edit_tasks_view(request: Request, day_name: str):
                 current_tasks_content = parts[0].strip()
     
     if current_tasks_content is None:
-        # Attempt 2: Fallback to the standard template file for the given day_name
+        # Attempt 2: Fallback to the standard template file for the given day_name.
         current_tasks_content = storage.read_tasks_template(day_name)
     # --- End smart pre-fill logic --- #
 
-    if current_tasks_content is None: # Handle potential read error if needed after all checks
+    if current_tasks_content is None: # Handle case where no content found after all checks
          return _return_error(f"Error loading tasks for {day_name_capitalized}. No data found in daily file or template.")
 
-    # Build Editor HTML fragment
-    editor_content = Div(
-        H2(f"Edit Tasks Template for {day_name_capitalized}"),
-        Form(
-            Textarea(current_tasks_content or "", name="tasks_content", rows=15, cols=80, cls="task-editor-textarea"),
-            Br(),
-            Div(
-                Input(type="submit", value="Save Tasks Template",
-                      hx_post=f'/save-tasks/{day_name}',
-                      hx_target=config.MAIN_CONTENT_ID,
-                      # Adjust swap to replace the main content area on success
-                      hx_swap=f'innerHTML swap:{config.SWAP_DELAY_MS}ms'
-                     ),
-                Button("Back to Calendar",
-                       hx_get="/",
-                       hx_target=config.MAIN_CONTENT_ID, # Target main content
-                       hx_swap=f"innerHTML swap:{config.SWAP_DELAY_MS}ms", # Swap main content
-                       hx_push_url="true",
-                       cls="button-cancel"
-                      ),
-                cls="task-button-container"
-            ),
-            action="javascript:void(0);" # Keep this to prevent default form submission
+    # Original form remains the same
+    task_form = Form(
+        Textarea(current_tasks_content or "", name="tasks_content", rows=15, cols=80, cls="task-editor-textarea"),
+        Br(),
+        Div(
+            Input(type="submit", value="Save Tasks Template",
+                    hx_post=f'/save-tasks/{day_name}',
+                    hx_target=config.MAIN_CONTENT_ID,
+                    hx_swap=f'innerHTML swap:{config.SWAP_DELAY_MS}ms',
+                    style="width: 100%; margin-right: 0;",
+                    ),
+            cls="task-button-container"
         ),
-        id="task-editor" # ID for the editor itself, if needed for styling/JS
+        action="javascript:void(0);" # Keep this to prevent default form submission
     )
+
+    # New structure for the editor content, mimicking personalize page
+    breadcrumbs = _generate_breadcrumbs([
+        ("Home", "/"),
+        (f"Edit {day_name_capitalized} Template", None) # Current page
+    ])
+
+    styled_editor_content = Main(
+        breadcrumbs, # Added breadcrumbs
+        Header(H1(f"Edit Tasks Template: {day_name_capitalized}", cls="page-title"), cls="page-header"),
+        Section(
+            P(f"Define the default tasks for any {day_name_capitalized}.", cls="page-description"), # Added a description
+            task_form, # The existing form
+            cls="tasks-options" # Similar to personalize-options for consistent section styling if needed
+        ),
+        id=f"task-editor-content-{day_name.lower()}", # Unique ID for the page content
+        cls="main-content-area" # Class for padding and background from personalize.css
+    )
+
+    # Link to personalize.css for the styles
+    linked_css = Style("", src="/static/css/personalize.css")
+    page_title = Title(f"Edit Tasks: {day_name_capitalized}")
 
     # Return full page or just fragment
     if "hx-request" not in request.headers:
         sidebar = _generate_sidebar()
-        # Wrap the editor_content in the main content container
-        main_content = Div(editor_content, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
-        # Return the full layout
-        return Title(f"Edit Tasks: {day_name_capitalized}"), \
-               Div(Div(sidebar, main_content, cls="layout-container"))
+        # Wrap the styled_editor_content in the main content container for full page loads.
+        # The ID MAIN_CONTENT_ID is applied to this outer Div for full page context.
+        # The styled_editor_content itself has cls="main-content-area" for styling consistency.
+        full_page_main_content = Div(styled_editor_content, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
+        return page_title, linked_css, Div(Div(sidebar, full_page_main_content, cls="layout-container"))
     else:
-        # Return only the editor content for HTMX swap
-        return editor_content
+        # For HTMX requests, return the title, CSS link, and the new styled content directly.
+        # This content will be swapped into the element with MAIN_CONTENT_ID.
+        return page_title, linked_css, styled_editor_content
 
 # Task Saving Action
 @app.post("/save-tasks/{day_name}")

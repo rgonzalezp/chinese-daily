@@ -104,7 +104,6 @@ def save_full_notes_content(date_str: str, day_name: str, notes_content: str) ->
 
     # do not read_tasks_template here, we want to read the specific tasks for the date
     tasks_markdown = read_tasks_for_display(date_str, day_name)
-    print(f"tasks_markdown: {tasks_markdown}")
     if tasks_markdown is None:
         print(f"Warning: Task template for {day_name} not found when saving notes for {date_str}. Saving notes without tasks.")
         tasks_markdown = f"## Tasks for {day_name.capitalize()}\n\n_(Template not found at time of save)_" # Or maybe just empty string?
@@ -112,12 +111,14 @@ def save_full_notes_content(date_str: str, day_name: str, notes_content: str) ->
     final_content = f"{tasks_markdown.strip()}{config.NOTES_SEPARATOR}{notes_content}"
     return write_notes_file(date_str, final_content)
 
-def save_raw_tasks(date_str: str, day_name: str, new_tasks_markdown: str) -> bool:
-    """Saves new task markdown, preserving existing notes if any."""
+def save_raw_tasks(date_str: str, day_name: str, new_tasks_markdown: str, force_empty_notes: bool = False) -> bool:
+    """Saves new task markdown, preserving existing notes unless force_empty_notes is True."""
     existing_full_content = read_notes_file(date_str)
     existing_notes_part = "" # Default to empty notes
 
-    if existing_full_content is not None:
+    if force_empty_notes:
+        existing_notes_part = "" # Ensure notes are empty if forced
+    elif existing_full_content is not None:
         parts = existing_full_content.split(config.NOTES_SEPARATOR, 1)
         if len(parts) == 2:
             # Separator found, preserve notes part
@@ -125,19 +126,18 @@ def save_raw_tasks(date_str: str, day_name: str, new_tasks_markdown: str) -> boo
         else:
             # No separator found in existing file, assume all existing content is notes
             existing_notes_part = existing_full_content
-    else:
-        # File doesn't exist. Notes part will be empty. 
-        # We might want to ensure new_tasks_markdown isn't None or empty here
-        # or that behavior is handled by the caller or desired.
-        pass # existing_notes_part remains ""
+    # If existing_full_content is None and not force_empty_notes, existing_notes_part remains ""
 
     # Construct the new full content
     # .strip() on new_tasks_markdown to remove any leading/trailing whitespace from editor
     final_content = f"{new_tasks_markdown.strip()}{config.NOTES_SEPARATOR}{existing_notes_part}"
+    print(f"--- STORAGE: save_raw_tasks for {date_str} ---")
     
     # Ensure DATA_DIR exists (write_notes_file also does this, but can be good practice)
     config.DATA_DIR.mkdir(parents=True, exist_ok=True)
-    return write_notes_file(date_str, final_content)
+    write_success = write_notes_file(date_str, final_content)
+    print(f"write_notes_file for {date_str} returned: {write_success}")
+    return write_success
 
 def toggle_task_in_notes(date_str: str, task_index: int) -> bool:
     """Toggles the state of a task checkbox within the notes file."""
