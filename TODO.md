@@ -16,3 +16,20 @@
 - [x] make headers for the date of the day and tasks and my notes bigger
 - [ ] Revise UI vs Web. Not properly separated responsibilities.
 - [ ] Naviation bar in view-day jiggles due to mde width higher than default layout 
+- [ ] Building AI-first language learning tool
+- [ ] Implement feature to automatically generate quizzes
+- [ ] Build first agentic model. Takes in 5-10 quiz type examples and builds a quiz based on the information/ the notes the user took. Quiz per lesson, vs quiz tailored for their vocabulary
+- [ ] Generate stories with tuned level of proportion of known vocabulary vs unknown vocabulary
+    - [ ] Include simple controls with presets (easy, 98% known; medium, 96% known; hard, 93%; extreme, 90%) 
+    - [ ] Allow users to tune to a specific percentage in advanced settings 
+    - [ ] Just generate stories until approximate proportion of words is achieved. These can be calculated by contrasting against their known and unknown/still learning vocabulary.
+- [ ] The quiz should be about a story generated on the spot and then the question should challenge the users reading comprehension, especially focused on the new words they are learning (or unseen words)
+- [ ] Feature to build vocabulary 
+    - [ ] Ability to select confident words to pull from known vocabulary. How and when?
+    - [ ] Visualize full map of words and have them white the ones you fully know and greyed out or black the ones unknown ( Use some language standard to reference in the map and make it kind of like a videogame)
+- [ ] (advanced) Feature to build sentence/grammatical structure knowledge base.
+- [ ] Create daily stories or pull from online articles based from users vocabulary and sentence structure experience. 
+- [ ] Make cool visualizations to topicalize the level of progress of language learning of the person by kind of task/topic (Food, fried food, computers, programming, etc.). Allow them to search how much they know about a specific topic.
+- [ ] Add level determination feature when the user first starts
+    - [ ] Either the user can select their level on their own (vibes based)
+    - [ ] We conduct a standarized quiz to automatically evaluate their level and pre-fill out the map of known words (allow user to adjust if miscalculated)
