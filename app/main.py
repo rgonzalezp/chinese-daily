@@ -19,7 +19,21 @@ app = FastHTML(
         # Add our custom global script for EasyMDE initialization
         Script(src='/static/js/mde_injection.js'),
         # Add our new sidebar interactions script
-        Script(src='/static/js/sidebar_interactions.js')
+        Script(src='/static/js/sidebar_interactions.js'),
+
+        # Script to apply saved theme on page load
+        Script("""
+(function() {
+    const savedTheme = localStorage.getItem('selectedTheme');
+    const defaultTheme = 'theme-red-sun'; // Default theme class
+    const themeToApply = savedTheme || defaultTheme;
+    // Apply class to HTML element as body might not exist yet
+    document.documentElement.className = document.documentElement.className.replace(/theme-\S+/g, '').trim(); // Clear existing and trim whitespace
+    if (themeToApply) {
+        document.documentElement.classList.add(themeToApply);
+    }
+})();
+        """)
     ]
 )
 

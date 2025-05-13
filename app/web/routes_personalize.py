@@ -1,5 +1,6 @@
-from fasthtml.common import Div, H1, H2, P, Title, A, Main, Section, Header, Style
+from fasthtml.common import Div, H1, H2, P, Title, A, Main, Section, Header, Style, Script
 from starlette.requests import Request # Added Request
+from starlette.responses import HTMLResponse # Added HTMLResponse
 from .. import config
 from ..main import app # Import the main app instance
 from ..ui.components import _generate_breadcrumbs, _generate_sidebar # ADDED _generate_sidebar
@@ -16,10 +17,10 @@ def _create_theme_item(theme_name: str, theme_description: str, theme_id: str):
             P(theme_description, cls="theme-item-description"),
             cls="theme-item-content"
         ),
-        href=f"/apply-theme/{theme_id}", # Example action
-        hx_post=f"/apply-theme/{theme_id}", # Example HTMX action
-        hx_target="#main-content", # Or body, or a specific element for feedback
-        hx_swap="innerHTML", # Or an appropriate swap
+        href="#", # Changed href to avoid page jump, handled by hx-post
+        hx_post=f"/apply-theme/{theme_id}", # Correct HTMX action
+        hx_target="body", # Target body to append script that modifies class
+        hx_swap="beforeend", # Append the script tag to run it
         cls="theme-grid-item"
     )
 
@@ -27,12 +28,16 @@ def _create_theme_item(theme_name: str, theme_description: str, theme_id: str):
 def get_personalize_page(request: Request): # Added request: Request
     """Serves the main personalize page with a grid of themes."""
     
-    # Example theme items
+    # Use theme IDs that match CSS classes (prefixed with 'theme-')
+    # Define the "Red Sun" theme ID
+    default_theme_id = "theme-red-sun" # Explicit ID for the default
+
     theme_items = [
-        _create_theme_item("Default Light", "The standard light and airy theme.", "default-light"),
-        _create_theme_item("Midnight Dark", "A sleek dark mode experience.", "midnight-dark"),
-        _create_theme_item("Ocean Blue", "Cool and calming blue tones.", "ocean-blue"),
-        _create_theme_item("Forest Green", "Earthy and natural greens.", "forest-green"),
+        _create_theme_item("Red Sun", "The standard light theme.", default_theme_id), # Default
+        _create_theme_item("Boba", "Creamy yellows and pastel browns.", "theme-boba"), # New Boba theme
+        _create_theme_item("Midnight Dark", "A sleek dark mode experience.", "theme-midnight-dark"),
+        _create_theme_item("Ocean Blue", "Cool and calming blue tones.", "theme-ocean-blue"),
+        _create_theme_item("Forest Green", "Earthy and natural greens.", "theme-forest-green"),
         # Add more themes as needed
     ]
     
@@ -71,3 +76,27 @@ def get_personalize_page(request: Request): # Added request: Request
         # Add .page-content-entry class for the animation
         htmx_response_content = Div(page_content_inner, id="content-swap-wrapper", cls="page-content-entry")
         return page_title, linked_css, htmx_response_content 
+
+# New endpoint to apply the theme
+@app.post("/apply-theme/{theme_id:str}")
+async def apply_theme(theme_id: str):
+    """Applies the selected theme by returning a script to modify the body class and save to localStorage."""
+    
+    # Basic validation: ensure theme_id starts with 'theme-'
+    if not theme_id or not theme_id.startswith("theme-"):
+        # Return an empty response or an error message if needed
+        return HTMLResponse("") 
+
+    script_content = f"""
+        const body = document.body;
+        // Remove any existing theme classes
+        body.className = body.className.replace(/theme-\S+/g, '');
+        // Add the new theme class
+        body.classList.add('{theme_id}');
+        // Save the theme choice in localStorage
+        localStorage.setItem('selectedTheme', '{theme_id}');
+    """
+    
+    # Return the script tag within an HTMLResponse for HTMX
+    # Note: The script runs because it's appended to the body via hx-swap="beforeend"
+    return HTMLResponse(f"<script>{script_content}</script>") 
