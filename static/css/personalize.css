@@ -146,11 +146,12 @@
     border-radius: 3px;
     font-size: 0.8em;
     cursor: pointer;
-    z-index: 10; /* Ensure it's above the iframe */
+    z-index: 20; /* Ensure it's above the iframe */
 }
 
 .expand-preview-btn:hover {
     background-color: rgba(0,0,0,0.8);
+    z-index: 20;
 }
 
 /* Styles for the Modal */

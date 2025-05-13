@@ -21,7 +21,7 @@ def _create_theme_item(theme_name: str, theme_description: str, theme_id: str):
     )
 
     expand_button = Button(
-        "[+ Expand]", 
+        "[Preview]", 
         cls="expand-preview-btn", 
         data_iframe_id=f"iframe-{theme_id}",
         data_theme_id=theme_id # Add the actual theme_id here
@@ -56,12 +56,12 @@ def get_personalize_page(request: Request): # Added request: Request
     default_theme_id = "theme-red-sun" # Explicit ID for the default
 
     theme_items = [
-        _create_theme_item("Red Sun", "The standard light theme.", default_theme_id), # Default
-        _create_theme_item("Boba", "Creamy yellows and pastel browns.", "theme-boba"), # New Boba theme
+        _create_theme_item("Red Sun", "The standard light theme.", default_theme_id), 
+        _create_theme_item("Boba", "Creamy yellows and pastel browns.", "theme-boba"), 
         _create_theme_item("Midnight Dark", "A sleek dark mode experience.", "theme-midnight-dark"),
         _create_theme_item("Ocean Blue", "Cool and calming blue tones.", "theme-ocean-blue"),
         _create_theme_item("Forest Green", "Earthy and natural greens.", "theme-forest-green"),
-        # Add more themes as needed
+
     ]
     
     theme_grid = Div(*theme_items, cls="theme-grid")
@@ -105,23 +105,17 @@ def get_personalize_page(request: Request): # Added request: Request
 # New endpoint to apply the theme
 @app.post("/apply-theme/{theme_id:str}")
 async def apply_theme(theme_id: str):
-    """Applies the selected theme by returning a script to modify the body class and save to localStorage."""
+    """Applies the selected theme by returning Script components to be appended to the body."""
     
-    # Basic validation: ensure theme_id starts with 'theme-'
     if not theme_id or not theme_id.startswith("theme-"):
-        # Return an empty response or an error message if needed
-        return HTMLResponse("") 
+        # Return nothing or an empty tuple if validation fails, 
+        # or a specific error component if you want to show an error.
+        return ()
 
-    script_content = f"""
-        const body = document.body;
-        // Remove any existing theme classes
-        body.className = body.className.replace(/theme-\S+/g, '');
-        // Add the new theme class
-        body.classList.add('{theme_id}');
-        // Save the theme choice in localStorage
-        localStorage.setItem('selectedTheme', '{theme_id}');
-    """
-    
-    # Return the script tag within an HTMLResponse for HTMX
-    # Note: The script runs because it's appended to the body via hx-swap="beforeend"
-    return HTMLResponse(f"<script>{script_content}</script>") 
+    # Return a tuple of Script components
+    # These will be appended to the body by HTMX (hx-target="body" hx-swap="beforeend")
+    # and then executed by the browser.
+    return (
+        Script(f"window.themeToApply = '{theme_id}';"),
+        Script(src='/static/js/apply_theme.js', defer=True)
+    ) 

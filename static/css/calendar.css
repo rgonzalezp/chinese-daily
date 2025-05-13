@@ -1,22 +1,21 @@
 /* static/css/calendar.css */
 
-/* NEW: Calendar Controls Styles */
 .calendar-controls {
     display: flex;
-    justify-content: space-between; /* Keep space between ends */
+    justify-content: space-between;
     align-items: center;
-    padding: 5px 5px; /* Reduced padding */
-    margin-bottom: 5px; /* Reduced space below controls */
+    padding: 5px 5px; 
+    margin-bottom: 5px; 
     border-bottom: 1px solid var(--border-color);
-    gap: 10px; /* Add gap between control items */
+    gap: 10px; 
 }
 
 .cal-month-year {
     font-weight: bold;
     font-size: 1.2em;
     color: var(--heading-color);
-    text-align: center; /* Center month/year text */
-    flex-grow: 1; /* Allow month/year to take up space */
+    text-align: center; 
+    flex-grow: 1; 
 }
 
 .cal-nav {
@@ -26,12 +25,11 @@
     background-color: var(--primary-light);
     color: var(--text-color);
     text-decoration: none;
-    white-space: nowrap; /* Prevent wrapping */
+    white-space: nowrap; 
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .cal-nav.today-nav {
-    /* Optional: Slightly different style for Today */
     border-color: var(--primary-dark);
 }
 
@@ -42,7 +40,6 @@
     text-decoration: none;
 }
 
-/* Calendar Grid Styles */
 .calendar-grid {
     width: 100%;
     border-collapse: collapse;
@@ -103,11 +100,3 @@
     color: white;
 }
 
-/* Calendar Wrapper Transition (might be obsolete?) */
-/* 
-#calendar-wrapper {
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out;
-    position: relative;
-}
-*/ 

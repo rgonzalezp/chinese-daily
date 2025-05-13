@@ -89,6 +89,7 @@ body {
     color: var(--text-color);
     background-color: var(--bg-color);
     font-size: 17px; /* Slightly larger base font */
+    transition: background-color 0.4s ease, color 0.4s ease; /* Added transition */
 }
 
 h1, h2, h3 {
@@ -96,6 +97,7 @@ h1, h2, h3 {
     margin-top: 1.5em;
     margin-bottom: 0.5em;
     color: var(--heading-color);
+    transition: color 0.4s ease; /* Added transition */
 }
 
 h1 {
@@ -109,6 +111,7 @@ h2 {
     font-size: 1.5em;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 0.3em;
+    transition: color 0.4s ease, border-color 0.4s ease; /* Added transition for border */
 }
 
 p {
@@ -118,17 +121,19 @@ p {
 a {
     color: var(--primary-dark);
     text-decoration: none;
+    transition: color 0.4s ease; /* Added transition */
 }
 
 a:hover {
     color: var(--accent-color);
-    text-decoration: underline;
+    /* text-decoration: underline; */ /* Hover underline can be instant */
 }
 
 hr {
     border: none;
     border-top: 1px solid var(--border-color);
     margin: 2em 0;
+    transition: border-top-color 0.4s ease; /* Added transition */
 }
 
 /* --- Scrollbar Styling --- */
@@ -138,6 +143,8 @@ html {
     /* Firefox scrollbar */
     scrollbar-width: thin; 
     scrollbar-color: var(--primary-color) var(--subtle-bg);
+    /* Scrollbar color transitions are not typically supported smoothly by all browsers */
+    /* transition: scrollbar-color 0.4s ease; */
 }
 
 /* --- Custom Scrollbar Styles (WebKit/Blink Browsers) --- */
@@ -148,14 +155,34 @@ html {
 ::-webkit-scrollbar-track {
     background: var(--subtle-bg); /* Background of the track */
     border-radius: 5px;
+    /* transition: background 0.4s ease; */ /* Track bg transition often not very noticeable or smooth */
 }
 
 ::-webkit-scrollbar-thumb {
     background: var(--primary-color); /* Color of the scroll thumb */
     border-radius: 5px;
     border: 2px solid var(--subtle-bg); /* Creates padding around thumb */
+    transition: background-color 0.4s ease, border-color 0.4s ease; /* Added transition */
 }
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary-dark); /* Darker thumb on hover */
 } 
+
+/* Consider adding transitions to other common elements/components that use theme colors */
+/* For example, buttons, input fields, specific component backgrounds if they use vars */
+
+/* Example for a generic button if you have one based on theme vars */
+/*
+.themed-button {
+    background-color: var(--primary-color);
+    color: var(--bg-color); // Assuming light text on primary bg
+    border: 1px solid var(--primary-dark);
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+}
+.themed-button:hover {
+    background-color: var(--primary-dark);
+}
+*/ 
