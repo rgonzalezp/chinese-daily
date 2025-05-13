@@ -8,7 +8,7 @@ from ..main import app
 from .. import config
 from ..ui.components import _generate_sidebar
 from ..services import calendar as calendar_service
-from fasthtml.common import A, Div, Span, Table, Tbody, Td, Th, Thead, Tr, Title, H1
+from fasthtml.common import A, Div, Span, Table, Tbody, Td, Th, Thead, Tr, Title, H1, Script
 # ------------------------------------------ #
 
 # Updated Helper function to generate the calendar HTML + Controls
@@ -93,14 +93,44 @@ def home(request: Request):
     # Generate Calendar View - it returns the #content-swap-wrapper div
     calendar_content = generate_calendar(year, month)
 
+    # --- Theme forcing for iframe preview --- 
+    preview_theme_script = None
+    preview_theme_val = request.query_params.get("preview_theme")
+    if preview_theme_val and preview_theme_val.startswith("theme-"):
+        # Make sure the theme name is safe to inject if necessary (though here it's just class name)
+        # This script runs immediately in the body of the iframe.
+        # It attempts to override any theme set by the main persistence script.
+        script_content = f"""
+(function() {{
+    const themeToForce = '{preview_theme_val}';
+    console.log('[iframe-preview] Forcing theme:', themeToForce);
+    const rootEl = document.documentElement;
+    rootEl.className = rootEl.className.replace(/theme-\S+/g, '').trim();
+    rootEl.classList.add(themeToForce);
+    // We could also try to override localStorage for selectedTheme temporarily,
+    // but that might have side effects if the user navigates away from the iframe.
+    // For now, just class override is safest for visual preview.
+}})();
+        """
+        preview_theme_script = Script(script_content)
+    # -------------------------------------- #
+
     # For full page load, wrap it in the main layout
     if "hx-request" not in request.headers:
-        sidebar = _generate_sidebar() # Assumes this is moved to ui.components
-        main_content = Div(calendar_content, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
-        return Title("Weekly Task Notes"), \
-               Div(
-                   Div(sidebar, main_content, cls="layout-container")
-               )
+        sidebar = _generate_sidebar() 
+        main_content_children = [calendar_content]
+        if preview_theme_script:
+            # Prepend script so it runs early in the body of the iframe
+            main_content_children.insert(0, preview_theme_script)
+        
+        main_content_div = Div(*main_content_children, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
+        
+        # The Title component is usually separate and handled by FastHTML before body components
+        return Title("Weekly Task Notes"), Div(sidebar, main_content_div, cls="layout-container")
     else:
         # For HTMX requests (like prev/next month), just return the calendar part
-        return calendar_content 
+        # If it's an HTMX swap within the preview iframe, this script also needs to be there.
+        if preview_theme_script:
+            return preview_theme_script, calendar_content # Return script then content
+        else:
+            return calendar_content 

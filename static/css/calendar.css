@@ -21,9 +21,9 @@
 
 .cal-nav {
     padding: 5px 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background-color: #fff;
+    border: 1px solid var(--primary-dark);
+    border-radius: 5px;
+    background-color: var(--primary-light);
     color: var(--text-color);
     text-decoration: none;
     white-space: nowrap; /* Prevent wrapping */

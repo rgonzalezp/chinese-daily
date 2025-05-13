@@ -1,4 +1,4 @@
-from fasthtml.common import Div, H1, H2, P, Title, A, Main, Section, Header, Style, Script, Iframe
+from fasthtml.common import Div, H1, H2, P, Title, A, Main, Section, Header, Style, Script, Iframe, Button
 from starlette.requests import Request # Added Request
 from starlette.responses import HTMLResponse # Added HTMLResponse
 from .. import config
@@ -12,19 +12,32 @@ from ..ui.components import _generate_breadcrumbs, _generate_sidebar # ADDED _ge
 def _create_theme_item(theme_name: str, theme_description: str, theme_id: str):
     """Creates a clickable grid item for a theme."""
     preview_iframe = Iframe(
-        src=f"/render-preview/{theme_id}",
+        src=f"/?preview_theme={theme_id}", # Set initial src with theme
         loading="lazy", # Defer loading until near viewport
-        # title=f"Preview of {theme_name} theme", # Good for accessibility
+        # title=f"Interactive preview of {theme_name} theme", # Good for accessibility
         # scrolling="no", # Prevent scrollbars inside iframe if content fits
         # sandbox="allow-scripts allow-same-origin", # For security if needed
         cls="theme-preview-iframe" # Class for styling
     )
 
+    expand_button = Button(
+        "[+ Expand]", 
+        cls="expand-preview-btn", 
+        data_iframe_id=f"iframe-{theme_id}",
+        data_theme_id=theme_id # Add the actual theme_id here
+    )
+    # We might need to give the iframe a unique ID as well for the JS to find it
+    preview_iframe.attrs["id"] = f"iframe-{theme_id}"
+
     return A( # Make the whole item clickable
         Div(
             H2(theme_name, cls="theme-item-title"),
             P(theme_description, cls="theme-item-description"),
-            Div(preview_iframe, cls="theme-preview-container"), # Wrap iframe for styling
+            Div(
+                preview_iframe, 
+                expand_button, # Add button next to or overlaying iframe
+                cls="theme-preview-container" # Wrap iframe for styling
+            ),
             cls="theme-item-content"
         ),
         href="#", # Changed href to avoid page jump, handled by hx-post
@@ -70,21 +83,23 @@ def get_personalize_page(request: Request): # Added request: Request
     )
     
     linked_css = Style("", src="/static/css/personalize.css")
+    linked_js = Script(src="/static/js/personalize_interactions.js") # Added JS link
     page_title = Title("Personalize")
 
     if "hx-request" not in request.headers:
         # Full page request: include sidebar and full layout
         sidebar = _generate_sidebar()
-        # The page_content_inner (which is a Main tag) will be wrapped by #content-swap-wrapper here.
-        # Add .page-content-entry for full page load consistency if desired, or rely on fresh load being instant.
-        # For now, applying to ensure animation if JS hydrates and swaps after initial load, though less common.
         content_for_full_page = Div(page_content_inner, id="content-swap-wrapper", cls="page-content-entry") 
         full_page_main_content = Div(content_for_full_page, id=config.MAIN_CONTENT_ID.strip('#'), cls="main-content")
-        return page_title, linked_css, Div(Div(sidebar, full_page_main_content, cls="layout-container"))
+        # Include linked_js for full page loads
+        return page_title, linked_css, linked_js, Div(Div(sidebar, full_page_main_content, cls="layout-container"))
     else:
         # HTMX request: return title, CSS, and the inner content wrapped in #content-swap-wrapper
-        # Add .page-content-entry class for the animation
+        # JS for modal is already on the page from full load, so no need to re-send unless it was part of the swap
         htmx_response_content = Div(page_content_inner, id="content-swap-wrapper", cls="page-content-entry")
+        # If the modal JS needed to be re-initialized on HTMX swap, we might include linked_js here too,
+        # or ensure the script handles dynamic content if expand buttons are swapped in.
+        # For now, assuming expand buttons are part of initial load of this component.
         return page_title, linked_css, htmx_response_content 
 
 # New endpoint to apply the theme
