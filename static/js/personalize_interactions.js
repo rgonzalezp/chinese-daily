@@ -22,8 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.expand-preview-btn').forEach(button => {
         button.addEventListener('click', (event) => {
-            event.preventDefault(); 
-            event.stopPropagation(); 
+      
 
             const iframeId = button.dataset.iframeId;
             const themeIdForPreview = button.dataset.themeId; // Get the theme ID
@@ -31,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             activeIframeOriginalThemeId = themeIdForPreview; // Store for reset on close
 
             if (activeIframe) {
+                console.log("activeIframe", activeIframe);
                 originalParent = activeIframe.parentNode;
                 originalIframeStyles.width = activeIframe.style.width;
                 originalIframeStyles.height = activeIframe.style.height;

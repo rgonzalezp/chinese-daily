@@ -216,3 +216,28 @@
 /* If using scale, you often need to adjust width/height to compensate */
 /* Example for scale(0.5): */
 /* (This is now implemented above) */ 
+
+/* Styles for the new Apply Theme button */
+.apply-theme-btn {
+    display: block; 
+    width: 100%;    
+    margin-top: 1rem; 
+    padding: 0.6rem 1rem;
+    background-color: var(--primary-color);
+    color: var(--bg-color); 
+    border: 1px solid var(--primary-dark);
+    border-radius: 5px;
+    text-align: center;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+.apply-theme-btn:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--accent-color);
+}
+
+.apply-theme-btn:active {
+    transform: translateY(1px);
+} 

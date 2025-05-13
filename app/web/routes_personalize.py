@@ -20,31 +20,38 @@ def _create_theme_item(theme_name: str, theme_description: str, theme_id: str):
         cls="theme-preview-iframe" # Class for styling
     )
 
+    preview_iframe.attrs["id"] = f"iframe-{theme_id}"
+
     expand_button = Button(
         "[Preview]", 
         cls="expand-preview-btn", 
         data_iframe_id=f"iframe-{theme_id}",
         data_theme_id=theme_id # Add the actual theme_id here
     )
-    # We might need to give the iframe a unique ID as well for the JS to find it
-    preview_iframe.attrs["id"] = f"iframe-{theme_id}"
 
-    return A( # Make the whole item clickable
+    apply_theme_button = Button(
+        "Apply Theme",
+        cls="apply-theme-btn", # Add a class for styling if needed
+        hx_post=f"/apply-theme/{theme_id}",
+        hx_target="body",
+        hx_swap="beforeend",
+        # hx_indicator="#loading-indicator" # Optional: if you have a global loading indicator
+    )
+
+    return Div( # Was A()
         Div(
             H2(theme_name, cls="theme-item-title"),
             P(theme_description, cls="theme-item-description"),
             Div(
                 preview_iframe, 
-                expand_button, # Add button next to or overlaying iframe
-                cls="theme-preview-container" # Wrap iframe for styling
+                expand_button, 
+                cls="theme-preview-container"
             ),
+            apply_theme_button, # Add the new apply button here
             cls="theme-item-content"
         ),
-        href="#", # Changed href to avoid page jump, handled by hx-post
-        hx_post=f"/apply-theme/{theme_id}", # Correct HTMX action
-        hx_target="body", # Target body to append script that modifies class
-        hx_swap="beforeend", # Append the script tag to run it
-        cls="theme-grid-item"
+        # Removed href, hx_post, hx_target, hx_swap from here
+        cls="theme-grid-item" # This class styles the card itself
     )
 
 @app.route("/personalize")
@@ -112,10 +119,7 @@ async def apply_theme(theme_id: str):
         # or a specific error component if you want to show an error.
         return ()
 
-    # Return a tuple of Script components
-    # These will be appended to the body by HTMX (hx-target="body" hx-swap="beforeend")
-    # and then executed by the browser.
     return (
         Script(f"window.themeToApply = '{theme_id}';"),
-        Script(src='/static/js/apply_theme.js', defer=True)
+        Script(src='/static/js/apply_theme.js', defer=False)
     ) 
