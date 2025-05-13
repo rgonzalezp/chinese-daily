@@ -49,6 +49,7 @@ from .web import routes_notes    # noqa: F401
 from .web import routes_calendar  # noqa: F401
 from .web import routes_tasks     # noqa: F401
 from .web import routes_personalize # noqa: F401
+from .web import routes_preview # noqa: F401
 # ---------------------------------------------------- #
 
 # Import UI components and other necessary modules

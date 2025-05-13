@@ -27,25 +27,27 @@
 /* Theme Grid Styling */
 .theme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive grid columns */
-    gap: 20px; /* Space between grid items */
+    /* Adjust grid columns for potentially wider cards with previews */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+    gap: 2rem;
+    margin-top: 2rem;
 }
 
 .theme-grid-item {
-    display: block; /* To make the <a> tag behave like a block for styling */
-    background-color: var(--card-background-color, #ffffff);
-    border: 1px solid var(--card-border-color, #e5e7eb);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 20px;
+    padding: 1.5rem;
+    background-color: var(--subtle-bg);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    display: block; /* Make the link a block element */
     text-decoration: none; /* Remove underline from link */
     color: inherit; /* Inherit text color */
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
 }
 
 .theme-grid-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
 }
 
 .theme-item-content {
@@ -53,17 +55,16 @@
 }
 
 .theme-item-title {
-    font-size: 1.25em;
-    color: var(--card-title-color, var(--primary-dark, #374151));
     margin-top: 0;
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
+    font-size: 1.3em;
+    color: var(--heading-color);
 }
 
 .theme-item-description {
-    font-size: 0.9em;
-    color: var(--card-text-color, var(--text-color, #4b5563));
-    margin-bottom: 0;
-    line-height: 1.5;
+    font-size: 0.95em;
+    margin-bottom: 1rem; /* Add space before preview */
+    color: var(--text-color);
 }
 
 /* Placeholder for if an item is active/selected */
@@ -109,4 +110,42 @@
 .breadcrumb-item.active {
     color: var(--text-color, #374151); /* Color for the current page text */
     font-weight: 500;
-} 
+}
+
+/* --- Theme Preview Iframe Styles --- */
+
+.theme-preview-container {
+    height: 180px; /* Define a fixed height for the preview area */
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden; /* Crucial: Clip the scaled iframe */
+    background-color: var(--bg-color); /* Show bg color while iframe loads */
+    position: relative; /* Needed if we absolute position things inside */
+    margin-top: 1rem; /* Space above the preview */
+}
+
+.theme-preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none; /* Remove default iframe border */
+    pointer-events: none; /* Disable interaction within the preview */
+    
+    /* Scaling attempt (may need adjustment) */
+    /* Calculate scale: target_height / iframe_content_intrinsic_height */
+    /* This is tricky without knowing content height. Let's start simple */
+    /* transform: scale(0.5);  */
+    /* transform-origin: top left; */
+    /* display: block; */ /* Ensure it takes block space */
+}
+
+/* If using scale, you often need to adjust width/height to compensate */
+/* Example for scale(0.5): */
+/* .theme-preview-iframe {
+    width: 200%; 
+    height: 200%;
+    transform: scale(0.5);
+    transform-origin: top left;
+    border: none;
+    pointer-events: none;
+    display: block;
+} */ 

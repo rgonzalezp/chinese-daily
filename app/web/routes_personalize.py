@@ -1,4 +1,4 @@
-from fasthtml.common import Div, H1, H2, P, Title, A, Main, Section, Header, Style, Script
+from fasthtml.common import Div, H1, H2, P, Title, A, Main, Section, Header, Style, Script, Iframe
 from starlette.requests import Request # Added Request
 from starlette.responses import HTMLResponse # Added HTMLResponse
 from .. import config
@@ -11,10 +11,20 @@ from ..ui.components import _generate_breadcrumbs, _generate_sidebar # ADDED _ge
 # Helper to create a theme item for the grid
 def _create_theme_item(theme_name: str, theme_description: str, theme_id: str):
     """Creates a clickable grid item for a theme."""
+    preview_iframe = Iframe(
+        src=f"/render-preview/{theme_id}",
+        loading="lazy", # Defer loading until near viewport
+        # title=f"Preview of {theme_name} theme", # Good for accessibility
+        # scrolling="no", # Prevent scrollbars inside iframe if content fits
+        # sandbox="allow-scripts allow-same-origin", # For security if needed
+        cls="theme-preview-iframe" # Class for styling
+    )
+
     return A( # Make the whole item clickable
         Div(
             H2(theme_name, cls="theme-item-title"),
             P(theme_description, cls="theme-item-description"),
+            Div(preview_iframe, cls="theme-preview-container"), # Wrap iframe for styling
             cls="theme-item-content"
         ),
         href="#", # Changed href to avoid page jump, handled by hx-post
