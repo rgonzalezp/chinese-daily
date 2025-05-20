@@ -1,8 +1,8 @@
 # Feature TODO List
 
 - **Keyword Cards in Calendar:** Implement a feature where we add a card/indicator inside the calendar cell for a specific date. The card would display one or a few keywords extracted from the notes saved for that day. This might involve generating embeddings from the notes text to find the most relevant keywords.
-- [ ] **Implement theme selection control**. The idea is to provide a gallery of themes with names. Called red sun the original, and planning on creating a new theme called bobba for shelly. The colors of this theme are going to be cream yellowish and brown pastel
-- [ ] **Implement markdown editor on double click for task section as my notes section** Taking a step forward, we want to let users edit their tasks for the day directly since they might want to change it on the fly for the day.
+- [x] **Implement theme selection control**. The idea is to provide a gallery of themes with names. Called red sun the original, and planning on creating a new theme called bobba for shelly. The colors of this theme are going to be cream yellowish and brown pastel
+- [x] **Implement markdown editor on double click for task section as my notes section** Taking a step forward, we want to let users edit their tasks for the day directly since they might want to change it on the fly for the day.
 - **Task Checkboxes:** [x]Enhance the rendering of task list items (from the `tasks/*.md` files) to include interactive checkboxes. Persist the checked state of these boxes, likely associated with the specific date being viewed.
 - **Saved Note Preview:** [x]When viewing/editing notes for a specific date, add a separate, read-only preview area (perhaps a right sidebar/panel) that displays the *last successfully saved* version of the notes for that date, rendered as Markdown. 
 - **Hide template:** two possibilities. Fully hide the tasks week bar behind a button or make it shorter and on hover make a preview of the tasks pop(which would be just a preview of markdown again). The pop should be like a sliding window coming out 
